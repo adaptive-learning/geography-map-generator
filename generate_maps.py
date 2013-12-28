@@ -2,6 +2,7 @@
 
 from kartograph import Kartograph
 import re
+import optparse
 
 PROVINCES_BIG_FILE = "src/ne_10m_admin_1_states_provinces_lakes/ne_10m_admin_1_states_provinces_lakes.shp"
 PROVINCES_MEDIUM_FILE = "src/ne_50m_admin_1_states_provinces_lakes/ne_50m_admin_1_states_provinces_lakes.shp"
@@ -14,11 +15,25 @@ RIVERS_FILE = "src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlin
 LAKES_FILE = "src/ne_110m_lakes/ne_110m_lakes.shp"
 
 
-def generate_maps():
-    generate_states()
-    generate_continents()
-    generate_world()
-    generate_regions()
+def main():
+    p = optparse.OptionParser()
+    options, arguments = p.parse_args()
+    if len(arguments) < 1:
+        generate_continents([])
+        generate_world()
+        generate_states([])
+        generate_regions([])
+    else:
+        maps = arguments.pop(0)
+        codes = arguments
+        if maps == 'states':
+            generate_states(codes)
+        elif maps == 'continents':
+            generate_continents(codes)
+        elif maps == 'world':
+            generate_world()
+        elif maps == 'regions':
+            generate_regions(codes)
 
 
 def world_cities_filter(record):
@@ -34,34 +49,14 @@ def generate_world():
               "name": "iso_a2"
             },
             "filter": ["iso_a2", "is not", "AQ"]
-#          }, {
-#            "id": "cities",
-#            "src": CITIES_FILE,
-#             "attributes": {
-#               "name": "NAME",
-#               "state-code": "ISO_A2"
-#             },
-#             "filter": world_cities_filter
-#          }, {
-#            "id": "rivers",
-#            "src": RIVERS_FILE,
-#             "attributes": {
-#               "name": "name",
-#             }
-#          }, {
-#            "id": "lakes",
-#            "src": LAKES_FILE,
-#             "attributes": {
-#               "name": "name",
-#             }
          }
        ]
     }
     generate(config, "world")
 
 
-def generate_regions():
-    regions = ["Latin America & Caribbean"]
+def generate_regions(codes):
+    regions = ["Latin America & Caribbean"] if len(codes) == 0 else codes
     for region in regions:
         config = {
            "layers": [{
@@ -86,15 +81,9 @@ def generate_regions():
         generate(config, filename)
 
 
-def generate(config, name):
-    K = Kartograph()
-    file_name = 'map/' + name + '.svg'
-    K.generate(config, outfile=file_name)
-    codes_to_lower(file_name)
-
-
-def generate_continents():
-    continents = ["Africa", "Europe", "Asia", "North America", "South America", "Oceania"]
+def generate_continents(codes):
+    continents = ["Africa", "Europe", "Asia", "North America", "South America",
+                   "Oceania"] if len(codes) == 0 else codes
     for continent in continents:
         config = {
            "layers": [{
@@ -145,21 +134,11 @@ def generate_continents():
         generate(config, filename)
 
 
-def get_neighbours(code):
-    neighbours_data = {
-        "CZ": ["DE", "AT", "SK", "PL"],
-        "DE": ["CZ", "AT", "PL"],
-        "AT": ["CZ", "SK", "DE"],
-        "CN": [],
-        "IN": []
-        }
-    neighbours = neighbours_data[code] if code in neighbours_data else []
-    neighbours.append(code)
-    return neighbours
-
-
-def generate_states():
-    states = ["CZ", "DE", "AT", "CN", "IN"]
+def generate_states(codes):
+    if len(codes) == 0:
+        states = ["CZ", "DE", "AT", "CN", "IN"]
+    else:
+        states = [c.upper for c in codes]
     for state in states:
         config = {
            "layers": [{
@@ -169,7 +148,6 @@ def generate_states():
                   "name": "iso_a2"
                 },
                 "filter": {"iso_a2": state}
-#                 "filter": ["iso_a2", "in", get_neighbours(state)]
              }, {
                "id": "provinces",
                "src": PROVINCES_BIG_FILE,
@@ -187,14 +165,7 @@ def generate_states():
                },
                 "filter": {"ISO_A2": state}
              }
-           ],
-#           "bounds": {
-#             "mode": "polygons",
-#             "data": {
-#                 "layer": "bg",
-#                 "filter": ["iso_a2", "in", [state]]
-#             }
-#           }
+           ]
         }
         if state in ["IN", "CN"]:
             config["layers"][2]["filter"] = {
@@ -205,7 +176,14 @@ def generate_states():
             }
         filename = state.lower()
         generate(config, filename)
-        print "generated map:", filename
+
+
+def generate(config, name):
+    K = Kartograph()
+    file_name = 'map/' + name + '.svg'
+    K.generate(config, outfile=file_name)
+    codes_to_lower(file_name)
+    print "generated map:", file_name
 
 
 def codes_to_lower(file_name):
@@ -232,4 +210,6 @@ def codes_to_lower(file_name):
     mapFile.write(map_data)
     mapFile.close()
 
-generate_maps()
+
+if __name__ == '__main__':
+    main()

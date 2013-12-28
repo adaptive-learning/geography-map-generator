@@ -1,0 +1,10 @@
+*.py[co]
+*.sw[po]
+*.bak
+*.orig
+*~
+.project
+.pydevproject
+sqlite3.db
+.sass-cache
+.settings
