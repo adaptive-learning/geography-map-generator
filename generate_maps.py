@@ -36,8 +36,8 @@ def main():
             generate_regions(codes)
 
 
-def world_cities_filter(record):
-    return record['POP_MAX'] > 10 ** 6
+def cities_size_filter(record):
+    return record['POP_MIN'] > 10 ** 6
 
 
 def generate_world():
@@ -46,7 +46,8 @@ def generate_world():
            "id": "states",
            "src": COUNTRIES_FILE,
             "attributes": {
-              "name": "iso_a2"
+              "name": "iso_a2",
+              "realname": "name",
             },
             "filter": ["iso_a2", "is not", "AQ"]
          }
@@ -136,24 +137,17 @@ def generate_continents(codes):
 
 def generate_states(codes):
     if len(codes) == 0:
-        states = ["CZ", "DE", "AT", "CN", "IN"]
+        states = ["CZ", "DE", "AT", "CN", "IN", "US"]
     else:
-        states = [c.upper for c in codes]
+        states = [c.upper() for c in codes]
     for state in states:
         config = {
            "layers": [{
-               "id": "bg",
-               "src": COUNTRIES_MEDIUM_FILE,
-                "attributes": {
-                  "name": "iso_a2"
-                },
-                "filter": {"iso_a2": state}
-             }, {
-               "id": "provinces",
+               "id": "states",
                "src": PROVINCES_BIG_FILE,
                "attributes": {
                   "name": "iso_3166_2",
-                  "state-code": "iso_a2"
+                  "realname": "name",
                },
                 "filter": {"iso_a2": state}
              }, {
@@ -167,13 +161,20 @@ def generate_states(codes):
              }
            ]
         }
-        if state in ["IN", "CN"]:
-            config["layers"][2]["filter"] = {
+        if state in ["IN", "CN", "US"]:
+            config["layers"][0]["filter"] = {
                 "and": [
-                    world_cities_filter,
-                    config["layers"][2]["filter"]
+                    config["layers"][0]["filter"],
+                    ["iso_3166_2", "not in", ["US-HI", "US-AK"]]
                 ]
             }
+            config["layers"][1]["filter"] = {
+                "and": [
+                    cities_size_filter,
+                    config["layers"][1]["filter"]
+                ]
+            }
+            config["layers"][0]["simplify"] = 1
         filename = state.lower()
         generate(config, filename)
 
@@ -182,11 +183,11 @@ def generate(config, name):
     K = Kartograph()
     file_name = 'map/' + name + '.svg'
     K.generate(config, outfile=file_name)
-    codes_to_lower(file_name)
+    codes_hacks(file_name)
     print "generated map:", file_name
 
 
-def codes_to_lower(file_name):
+def codes_hacks(file_name):
     mapFile = open(file_name)
     map_data = mapFile.read()
     mapFile.close()
@@ -197,14 +198,16 @@ def codes_to_lower(file_name):
         return matchobj.group(0).lower()
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
     if "europe" in file_name:
-        map_data = re.sub(r'"-99"', '"xk"', map_data)  # Kosovo has no iso code
+        # set missing iso codes of Kosovo xk
+        map_data = re.sub(r'"-99"', '"xk"', map_data)
     if "world" in file_name:
         map_data = re.sub(r'r="2"', 'r="4"', map_data)
-        # TODO: set missing iso codes of Kosovo and Somaliland to xk and xs
-        # TODO: set missing iso code of Northern Cyprus
-        # TODO: replace newlines in lakes' name attributes
-        # unsuccessful attempt to replace newlines in lakes' name attributes
-        map_data = map_data.replace('\r\n', ' ')
+        # set missing iso codes of Kosovo and Somaliland to xk and xs
+        map_data = map_data.replace('data-name="-99" data-realname="Kosovo"',
+                                     'data-name="xk" data-realname="Kosovo"')
+        map_data = map_data.replace('data-name="-99" data-realname="Somaliland"',
+                                     'data-name="xs" data-realname="Somaliland"')
+        # TODO: set missing iso code of Northern Cyprus. But what code?
     else:
         map_data = re.sub(r'r="2"', 'r="8"', map_data)
     mapFile.write(map_data)
