@@ -146,21 +146,24 @@ def generate_states(codes):
                "id": "states",
                "src": PROVINCES_BIG_FILE,
                "attributes": {
-                  "name": "iso_3166_2",
+                  "name": "name",
                   "realname": "name",
                },
                 "filter": {"iso_a2": state}
-             }, {
-               "id": "cities",
-               "src": CITIES_BIG_FILE,
-               "attributes": {
-                  "name": "NAME",
-                  "state-code": "ISO_A2"
-               },
-                "filter": {"ISO_A2": state}
+#              }, {
+#                "id": "cities",
+#                "src": CITIES_BIG_FILE,
+#                "attributes": {
+#                   "name": "NAME",
+#                   "state-code": "ISO_A2",
+#                   "realname": "NAME",
+#                },
+#                 "filter": {"ISO_A2": state}
              }
            ]
         }
+        if state in ["CZ", "US", "CN", "CA"]:
+            config["layers"][0]["attributes"]["name"] = "iso_3166_2"
         if state in ["IN", "CN", "US"]:
             config["layers"][0]["filter"] = {
                 "and": [
@@ -168,12 +171,13 @@ def generate_states(codes):
                     ["iso_3166_2", "not in", ["US-HI", "US-AK"]]
                 ]
             }
-            config["layers"][1]["filter"] = {
-                "and": [
-                    cities_size_filter,
-                    config["layers"][1]["filter"]
-                ]
-            }
+#             config["layers"][1]["filter"] = {
+#                 "and": [
+#                     cities_size_filter,
+#                     config["layers"][1]["filter"]
+#                 ]
+#             }        }
+        if state in ["CZ", "US", "CN", "DE", "AU", "CA"]:
             config["layers"][0]["simplify"] = 1
         filename = state.lower()
         generate(config, filename)
@@ -197,6 +201,7 @@ def codes_hacks(file_name):
     def dashrepl(matchobj):
         return matchobj.group(0).lower()
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
+    map_data = re.sub(r'"[A-Z]{2}\-[A-Z0-9]{2}"', dashrepl, map_data)
     if "europe" in file_name:
         # set missing iso codes of Kosovo xk
         map_data = re.sub(r'"-99"', '"xk"', map_data)
