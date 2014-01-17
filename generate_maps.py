@@ -94,13 +94,6 @@ def generate_continents(codes):
                   "name": "iso_a2"
                 },
                 "filter": {"continent": continent}
-             }, {
-           "id": "cities",
-           "src": CITIES_FILE,
-            "attributes": {
-              "name": "NAME",
-              "state-code": "ISO_A2"
-            }
          }
            ]
         }
@@ -119,9 +112,6 @@ def generate_continents(codes):
                 "mode": "bbox",
                 "data": [-15, 36, 50, 70]
             }
-            config["layers"][1]["filter"] = ["ISO_A2", "not in",
-                  ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA"]
-            ]
         if continent == "Oceania":
             config["bounds"] = {
             "mode": "bbox",
@@ -150,15 +140,6 @@ def generate_states(codes):
                   "realname": "name",
                },
                 "filter": {"iso_a2": state}
-#              }, {
-#                "id": "cities",
-#                "src": CITIES_BIG_FILE,
-#                "attributes": {
-#                   "name": "NAME",
-#                   "state-code": "ISO_A2",
-#                   "realname": "NAME",
-#                },
-#                 "filter": {"ISO_A2": state}
              }
            ]
         }
@@ -171,14 +152,20 @@ def generate_states(codes):
                     ["iso_3166_2", "not in", ["US-HI", "US-AK"]]
                 ]
             }
-#             config["layers"][1]["filter"] = {
-#                 "and": [
-#                     cities_size_filter,
-#                     config["layers"][1]["filter"]
-#                 ]
-#             }        }
         if state in ["CZ", "US", "CN", "DE", "AU", "CA"]:
             config["layers"][0]["simplify"] = 1
+        if state in ["CZ", "AT"]:
+            config["proj"] = {
+                "id": "laea",
+                "lon0": 15,
+                "lat0": 48
+            }
+        if state == "US":
+            config["proj"] = {
+                "id": "lonlat",
+                "lon0":-101,
+                "lat0": 40
+            }
         filename = state.lower()
         generate(config, filename)
 
