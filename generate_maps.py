@@ -149,7 +149,15 @@ def generate_states(codes):
             config["layers"][0]["filter"] = {
                 "and": [
                     config["layers"][0]["filter"],
-                    ["iso_3166_2", "not in", ["US-HI", "US-AK"]]
+                    ["iso_3166_2", "not in", ["US-HI", "US-AK", "CN-"]],
+                    ["name", "not in", [
+                                        "Andaman and Nicobar",
+                                        "Chandigarh",
+                                        "Dadra and Nagar Haveli",
+                                        "Daman and Diu",
+                                        "Lakshadweep",
+                                        "Puducherry",
+                                        ]]
                 ]
             }
         if state in ["CZ", "US", "CN", "DE", "AU", "CA"]:
