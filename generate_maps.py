@@ -164,6 +164,8 @@ def generate_states(codes):
         }
         if state in ["CZ", "US", "CN", "CA"]:
             config["layers"][0]["attributes"]["name"] = "iso_3166_2"
+        if state in ["DE", "AT"]:
+            config["layers"][0]["attributes"]["name"] = "code_hasc"
         if state in ["IN", "CN", "US"]:
             config["layers"][0]["filter"] = {
                 "and": [
@@ -251,6 +253,9 @@ def codes_hacks(file_name):
     def dashrepl(matchobj):
         return matchobj.group(0).lower()
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
+    if "/de.svg" in file_name:
+        map_data = re.sub(r'"DE."', '"DE.BR"', map_data)
+    map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
     map_data = re.sub(r'"[A-Z]{2}\-[A-Z0-9]{2}"', dashrepl, map_data)
     if "europe" in file_name:
         # set missing iso codes of Kosovo xk
