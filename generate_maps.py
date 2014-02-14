@@ -28,6 +28,8 @@ def main():
         codes = arguments
         if maps == 'states':
             generate_states(codes)
+        elif maps == 'citystates':
+            generate_city_states(codes)
         elif maps == 'continents':
             generate_continents(codes)
         elif maps == 'world':
@@ -37,7 +39,7 @@ def main():
 
 
 def cities_size_filter(record):
-    return record['POP_MIN'] > 10 ** 6
+    return record['POP_MAX'] > 10 ** 5
 
 
 def generate_world():
@@ -91,7 +93,8 @@ def generate_continents(codes):
                "id": "states",
                "src": COUNTRIES_FILE,
                 "attributes": {
-                  "name": "iso_a2"
+                  "name": "iso_a2",
+                  "realname": "name"
                 },
                 "filter": {"continent": continent}
          }
@@ -112,6 +115,22 @@ def generate_continents(codes):
                 "mode": "bbox",
                 "data": [-15, 36, 50, 70]
             }
+            config["layers"].append({
+           "id": "cities",
+           "src": CITIES_FILE,
+            "attributes": {
+              "name": "NAME",
+              "realname": "NAME",
+              "state-code": "ISO_A2"
+            },
+            "filter": {"and": [
+                    ["ISO_A2", "not in",
+                      ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA"]
+                    ],
+                    ["NAME", "not in", ["The Hague", "Vatican City"]]
+                ]
+            }
+         })
         if continent == "Oceania":
             config["bounds"] = {
             "mode": "bbox",
@@ -178,6 +197,42 @@ def generate_states(codes):
         generate(config, filename)
 
 
+def generate_city_states(codes):
+    if len(codes) == 0:
+        states = ["IT", "ES", "GB"]
+    else:
+        states = [c.upper() for c in codes]
+    for state in states:
+        config = {
+           "layers": [{
+               "id": "bg",
+               "src": COUNTRIES_MEDIUM_FILE,
+               "attributes": {
+                  "name": "iso_a2",
+                  "realname": "name",
+               },
+                "filter": {"iso_a2": state}
+             },
+             {
+               "id": "cities",
+               "src": CITIES_BIG_FILE,
+               "attributes": {
+                  "name": "NAME",
+                  "realname": "NAME",
+               },
+              "filter": {
+                  "and": [
+                        cities_size_filter,
+                        {"ISO_A2": state}
+                    ]
+              }
+             }
+           ]
+        }
+        filename = state.lower()
+        generate(config, filename)
+
+
 def generate(config, name):
     K = Kartograph()
     file_name = 'map/' + name + '.svg'
@@ -200,7 +255,8 @@ def codes_hacks(file_name):
     if "europe" in file_name:
         # set missing iso codes of Kosovo xk
         map_data = re.sub(r'"-99"', '"xk"', map_data)
-    if "world" in file_name:
+        map_data = re.sub(r'r="2"', 'r="10"', map_data)
+    elif "world" in file_name:
         map_data = re.sub(r'r="2"', 'r="4"', map_data)
         # set missing iso codes of Kosovo and Somaliland to xk and xs
         map_data = map_data.replace('data-name="-99" data-realname="Kosovo"',
@@ -208,6 +264,8 @@ def codes_hacks(file_name):
         map_data = map_data.replace('data-name="-99" data-realname="Somaliland"',
                                      'data-name="xs" data-realname="Somaliland"')
         # TODO: set missing iso code of Northern Cyprus. But what code?
+    elif "/it.svg" in file_name:
+        map_data = re.sub(r'r="2"', 'r="16"', map_data)
     else:
         map_data = re.sub(r'r="2"', 'r="8"', map_data)
     mapFile.write(map_data)
