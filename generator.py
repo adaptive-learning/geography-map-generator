@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from kartograph import Kartograph
 import re
 
@@ -24,11 +25,19 @@ def codes_hacks(file_name):
 
     mapFile = open(file_name, 'w')
 
-    def dashrepl(matchobj):
-        return matchobj.group(0).lower()
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
-    if "/de.svg" in file_name:
+    if "/it.svg" in file_name:
+        map_data = fix_italy(map_data)
+    elif "/fr.svg" in file_name:
+        map_data = fix_france(map_data)
+    elif "/de.svg" in file_name:
         map_data = re.sub(r'"DE."', '"DE.BR"', map_data)
+    elif "/in.svg" in file_name:
+        map_data = re.sub(r'data-name="IN." data-realname="Gujarat"',
+                          'data-name="IN.GU" data-realname="Gujarat"', map_data)
+        map_data = re.sub(r'data-name="IN." data-realname="Tamil Nadu"',
+                          'data-name="IN.TA" data-realname="Tamil Nadu"', map_data)
+
     map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
     map_data = re.sub(r'"[A-Z]{2}\-[A-Z0-9]{2}"', dashrepl, map_data)
     if "europe" in file_name:
@@ -49,3 +58,68 @@ def codes_hacks(file_name):
         map_data = re.sub(r'r="2"', 'r="8"', map_data)
     mapFile.write(map_data)
     mapFile.close()
+
+
+def dashrepl(matchobj):
+    return matchobj.group(0).lower()
+
+
+def fix_italy(map_data):
+    CODES = {
+        u'Abruzzo': u'IT-65',
+        u'Apulia': u'IT-75',
+        u'Basilicata': u'IT-77',
+        u'Calabria': u'IT-78',
+        u'Campania': u'IT-72',
+        u'Emilia-Romagna': u'IT-45',
+        u'Friuli-Venezia Giulia': u'IT-36',
+        u'Lazio': u'IT-62',
+        u'Liguria': u'IT-42',
+        u'Lombardia': u'IT-25',
+        u'Marche': u'IT-57',
+        u'Molise': u'IT-67',
+        u'Piemonte': u'IT-21',
+        u'Sardegna': u'IT-88',
+        u'Sicily': u'IT-82',
+        u'Toscana': u'IT-52',
+        u'Trentino-Alto Adige': u'IT-32',
+        u'Umbria': u'IT-55',
+        u'Valle d\'Aosta': u'IT-23',
+        u'Veneto': u'IT-34',
+    }
+    pattern = re.compile('-name="(' + '|'.join(CODES.keys()) + ')"')
+    map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+    return map_data
+
+
+def fix_france(map_data):
+    CODES = {
+        u'Alsace': u'FR-A',
+        u'Aquitaine': u'FR-B',
+        u'Auvergne': u'FR-C',
+        u'Basse-Normandie': u'FR-P',
+        u'Bourgogne': u'FR-D',
+        u'Bretagne': u'FR-E',
+        u'Centre': u'FR-F',
+        u'Champagne-Ardenne': u'FR-G',
+        u'Corse': u'FR-H',
+        u'Franche-Comté': u'FR-I',
+        u'Haute-Normandie': u'FR-Q',
+        u'Île-de-France': u'FR-J',
+        u'Languedoc-Roussillon': u'FR-K',
+        u'Limousin': u'FR-L',
+        u'Lorraine': u'FR-M',
+        u'Midi-Pyrénées': u'FR-N',
+        u'Nord-Pas-de-Calais': u'FR-O',
+        u'Pays de la Loire': u'FR-R',
+        u'Picardie': u'FR-S',
+        u'Poitou-Charentes': u'FR-T',
+        u'Provence-Alpes-Côte-d\'Azur': u'FR-U',
+        u'Rhône-Alpes': u'FR-V',
+    }
+    pattern = re.compile(u'-name="(' + u'|'.join(CODES.keys()) + u')"')
+    map_data = map_data.decode("utf-8")
+    map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+    map_data = re.sub(r'"[A-Z]{2}\-[A-Z]"', dashrepl, map_data)
+    map_data = map_data.encode("utf-8")
+    return map_data

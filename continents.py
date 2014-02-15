@@ -20,7 +20,6 @@ class ContinentsGenerator(MapGenerator):
                 "filter": {"continent": continent}
             }]
         }
-        filename = continent.lower()
         if continent == "Asia":
             config["layers"][0]["filter"] = {"or": [
                 ["iso_a2", "is", "RU"],
@@ -56,6 +55,7 @@ class ContinentsGenerator(MapGenerator):
                 # [minLon, minLat, maxLon, maxLat].
                 "data": [110, -45, 180, 0]
             }
+        filename = continent.lower()
         if continent == "North America":
             filename = "namerica"
         if continent == "South America":
