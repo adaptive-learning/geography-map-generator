@@ -26,42 +26,51 @@ def codes_hacks(file_name):
     mapFile = open(file_name, 'w')
 
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
-    if "/it.svg" in file_name:
-        map_data = fix_italy(map_data)
-    elif "/fr.svg" in file_name:
-        map_data = fix_france(map_data)
-    elif "/de.svg" in file_name:
-        map_data = re.sub(r'"DE."', '"DE.BR"', map_data)
-    elif "/in.svg" in file_name:
-        map_data = re.sub(r'data-name="IN." data-realname="Gujarat"',
-                          'data-name="IN.GU" data-realname="Gujarat"', map_data)
-        map_data = re.sub(r'data-name="IN." data-realname="Tamil Nadu"',
-                          'data-name="IN.TA" data-realname="Tamil Nadu"', map_data)
+    map_data = state_related_fix(map_data, file_name)
 
     map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
     map_data = re.sub(r'"[A-Z]{2}\-[A-Z0-9]{2}"', dashrepl, map_data)
     if "europe" in file_name:
         # set missing iso codes of Kosovo xk
-        map_data = re.sub(r'"-99"', '"xk"', map_data)
-        map_data = re.sub(r'r="2"', 'r="10"', map_data)
+        map_data = map_data.replace('"-99"', '"xk"')
+        map_data = map_data.replace('r="2"', 'r="10"')
+        map_data = map_data.replace('-name="San Marino"', '-name="San_Marino"')
     elif "world" in file_name:
-        map_data = re.sub(r'r="2"', 'r="4"', map_data)
+        map_data = map_data.replace('r="2"', 'r="4"')
         # set missing iso codes of Kosovo and Somaliland to xk and xs
         map_data = map_data.replace('data-name="-99" data-realname="Kosovo"',
                                     'data-name="xk" data-realname="Kosovo"')
         map_data = map_data.replace('data-name="-99" data-realname="Somaliland"',
                                     'data-name="xs" data-realname="Somaliland"')
         # TODO: set missing iso code of Northern Cyprus. But what code?
-    elif "/it.svg" in file_name:
-        map_data = re.sub(r'r="2"', 'r="16"', map_data)
-    else:
-        map_data = re.sub(r'r="2"', 'r="8"', map_data)
     mapFile.write(map_data)
     mapFile.close()
 
 
 def dashrepl(matchobj):
     return matchobj.group(0).lower()
+
+
+def state_related_fix(map_data, file_name):
+    if "/it.svg" in file_name:
+        map_data = fix_italy(map_data)
+    elif "/fr.svg" in file_name:
+        map_data = fix_france(map_data)
+    elif "/cn.svg" in file_name:
+        map_data = map_data.replace('"CN-"', '"CN-35"')
+    elif "/de.svg" in file_name:
+        map_data = map_data.replace('"DE."', '"DE.BB"')
+    elif "/in.svg" in file_name:
+        map_data = map_data.replace('data-name="IN." data-realname="Gujarat"',
+                                    'data-name="IN.GJ" data-realname="Gujarat"')
+        map_data = map_data.replace('data-name="IN." data-realname="Tamil Nadu"',
+                                    'data-name="IN.TN" data-realname="Tamil Nadu"')
+    elif "/cz.svg" in file_name:
+        map_data = map_data.replace(
+            "M0.000000,0.000000L0.000000,567.267337" +
+            "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
+            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+    return map_data
 
 
 def fix_italy(map_data):

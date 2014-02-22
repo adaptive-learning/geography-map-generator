@@ -1,14 +1,16 @@
 from generator import MapGenerator
 
 PROVINCES_BIG_FILE = "src/ne_10m_admin_1_states_provinces_lakes/ne_10m_admin_1_states_provinces_lakes.shp"
-PROVINCES_MEDIUM_FILE = "src/ne_50m_admin_1_states_provinces_lakes/ne_50m_admin_1_states_provinces_lakes.shp"
 ITALY_FILE = "src/ITA_adm/ITA_adm1.shp"
 SPAIN_FILE = "src/ESP_adm/ESP_adm1.shp"
 FRANCE_FILE = "src/FRA_adm/FRA_adm1.shp"
+COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
+COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
+LAKES_FILE = "src/ne_110m_lakes/ne_110m_lakes.shp"
 
 
 class StatesGenerator(MapGenerator):
-    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US"]
+    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "ES", "IT", "FR", "CA", "AU"]
 
     def get_name(self, state):
         if state in ["CZ", "US", "CN", "CA"]:
@@ -28,6 +30,12 @@ class StatesGenerator(MapGenerator):
         else:
             return "name"
 
+    def get_bg_src(self, state):
+        if state in ["US", "CA"]:
+            return COUNTRIES_MEDIUM_FILE
+        else:
+            return COAST_FILE
+
     def get_src(self, state):
         if state == "IT":
             return ITALY_FILE
@@ -45,7 +53,7 @@ class StatesGenerator(MapGenerator):
             return {
                 "and": [
                     {"iso_a2": state},
-                    ["iso_3166_2", "not in", ["US-HI", "US-AK", "CN-", "CA-"]],
+                    ["iso_3166_2", "not in", ["US-HI", "US-AK", "CA-"]],
                     ["code_hasc", "not in", ["AU", "AU.JB"]],
                     ["name", "not in", [
                         "Andaman and Nicobar",
@@ -63,29 +71,41 @@ class StatesGenerator(MapGenerator):
     def generate_one(self, state):
         config = {
             "layers": [{
+                "id": "bg",
+                "src": self.get_bg_src(state),
+                "simplify": 5,
+            }, {
                 "id": "states",
                 "src": self.get_src(state),
                 "attributes": {
                     "name": self.get_name(state),
                     "realname": self.get_realname(state),
                 },
-                "filter": self.get_filter(state)
-            }]
+                "filter": self.get_filter(state),
+            }],
+            "bounds": {
+                "mode": "polygons",
+                "data": {
+                    "layer": "states",
+                },
+            }
         }
 
-        if state in ["CZ", "US", "CN", "DE", "AU", "CA", "IT", "ES", "FR"]:
-            config["layers"][0]["simplify"] = 1
+        if state in ["US", "CN", "DE", "AU", "IT", "ES", "FR", "CA"]:
+            config["layers"][1]["simplify"] = 1
         if state in ["CZ", "AT"]:
             config["proj"] = {
                 "id": "laea",
-                "lon0": 15,
-                "lat0": 48
+                "lon0": "auto",
+                "lat0": "auto"
             }
         if state in ["US", "CA"]:
             config["proj"] = {
                 "id": "lonlat",
-                "lon0": -101,
+                "lon0": "auto",
                 "lat0": 40
             }
+        if state in ["IT", "CA"]:
+            config["layers"].pop(0)
         filename = state.lower()
         self.generate_map(config, filename)
