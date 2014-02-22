@@ -10,3 +10,5 @@ sqlite3.db
 .settings
 .ropeproject
 flags
+maps
+src
