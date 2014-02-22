@@ -8,6 +8,16 @@ class ContinentsGenerator(MapGenerator):
     default_codes = ["Africa", "Europe", "Asia", "North America", "South America",
                      "Oceania"]
 
+    def get_filter(self, continent):
+        if continent == "Asia":
+            return {"or": [
+                ["iso_a2", "is", "RU"],
+                {"continent": "Asia"},
+            ]}
+            return ["HASC_1", "not in", ["ES.CN", "ES.CE"]]
+        else:
+            return {"continent": continent}
+
     def generate_one(self, continent):
         config = {
             "layers": [{
@@ -17,19 +27,15 @@ class ContinentsGenerator(MapGenerator):
                     "name": "iso_a2",
                     "realname": "name"
                 },
-                "filter": {"continent": continent}
+                "filter": self.get_filter(continent)
             }]
         }
         if continent == "Asia":
-            config["layers"][0]["filter"] = {"or": [
-                ["iso_a2", "is", "RU"],
-                {"continent": "Asia"},
-            ]}
             config["bounds"] = {
                 "mode": "bbox",
                 "data": [40, -10, 145, 55]
             }
-        if continent == "Europe":
+        elif continent == "Europe":
             config["bounds"] = {
                 "mode": "bbox",
                 "data": [-15, 36, 50, 70]
@@ -38,7 +44,7 @@ class ContinentsGenerator(MapGenerator):
                 "id": "cities",
                 "src": CITIES_FILE,
                 "attributes": {
-                    "name": "NAME",
+                    "name": "NAMEASCII",
                     "realname": "NAME",
                     "state-code": "ISO_A2"
                 },
@@ -46,10 +52,10 @@ class ContinentsGenerator(MapGenerator):
                     ["ISO_A2", "not in",
                         ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA"]
                      ],
-                    ["NAME", "not in", ["The Hague", "Vatican City"]]
+                    ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]]
                 ]}
             })
-        if continent == "Oceania":
+        elif continent == "Oceania":
             config["bounds"] = {
                 "mode": "bbox",
                 # [minLon, minLat, maxLon, maxLat].
