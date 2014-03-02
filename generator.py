@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from kartograph import Kartograph
 import re
+import unicodedata
 
 
 class MapGenerator():
@@ -26,6 +27,7 @@ def codes_hacks(file_name):
     mapFile = open(file_name, 'w')
 
     map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
+    map_data = re.sub(r'\-name="[^"]*"', slugrepl, map_data)
     map_data = state_related_fix(map_data, file_name)
 
     map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
@@ -35,6 +37,12 @@ def codes_hacks(file_name):
         map_data = map_data.replace('"-99"', '"xk"')
         map_data = map_data.replace('r="2"', 'r="10"')
         map_data = map_data.replace('-name="San Marino"', '-name="San_Marino"')
+        # Move Vienna to the west
+        map_data = map_data.replace('cx="485.279892452"', 'cx="480.279892452"')
+        # Move Bratislava to the east
+        map_data = map_data.replace('cx="495.028537448"', 'cx="500.028537448"')
+    elif "namerica" in file_name:
+        map_data = map_data.replace('r="2"', 'r="8"')
     elif "world" in file_name:
         map_data = map_data.replace('r="2"', 'r="4"')
         # set missing iso codes of Kosovo and Somaliland to xk and xs
@@ -45,6 +53,11 @@ def codes_hacks(file_name):
         # TODO: set missing iso code of Northern Cyprus. But what code?
     mapFile.write(map_data)
     mapFile.close()
+
+
+def slugrepl(matchobj):
+    text = matchobj.group(0).replace(" ", "_").decode("utf-8")
+    return unicodedata.normalize('NFD', text).encode('ascii', 'ignore')
 
 
 def dashrepl(matchobj):
@@ -60,6 +73,9 @@ def state_related_fix(map_data, file_name):
         map_data = map_data.replace('"CN-"', '"CN-35"')
     elif "/de.svg" in file_name:
         map_data = map_data.replace('"DE."', '"DE.BB"')
+    elif "/us.svg" in file_name:
+        map_data = map_data.replace(',559', ',564')
+        map_data = map_data.replace('r="2"', 'r="8"')
     elif "/in.svg" in file_name:
         map_data = map_data.replace('data-name="IN." data-realname="Gujarat"',
                                     'data-name="IN.GJ" data-realname="Gujarat"')

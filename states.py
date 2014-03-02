@@ -6,7 +6,14 @@ SPAIN_FILE = "src/ESP_adm/ESP_adm1.shp"
 FRANCE_FILE = "src/FRA_adm/FRA_adm1.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
-LAKES_FILE = "src/ne_110m_lakes/ne_110m_lakes.shp"
+MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
+PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
+RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
+LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
+
+
+def cities_size_filter(record):
+    return record['POP_MAX'] > 5 * 10 ** 5
 
 
 class StatesGenerator(MapGenerator):
@@ -53,7 +60,7 @@ class StatesGenerator(MapGenerator):
             return {
                 "and": [
                     {"iso_a2": state},
-                    ["iso_3166_2", "not in", ["US-HI", "US-AK", "CA-"]],
+                    ["iso_3166_2", "not in", ["US-HI", "US-AK", "US-DC", "CA-"]],
                     ["code_hasc", "not in", ["AU", "AU.JB"]],
                     ["name", "not in", [
                         "Andaman and Nicobar",
@@ -100,6 +107,7 @@ class StatesGenerator(MapGenerator):
                 "lat0": "auto"
             }
         if state in ["US", "CA"]:
+            config["layers"][0]["simplify"] = 2
             config["proj"] = {
                 "id": "lonlat",
                 "lon0": "auto",
@@ -107,5 +115,69 @@ class StatesGenerator(MapGenerator):
             }
         if state in ["IT", "CA"]:
             config["layers"].pop(0)
+
+        if state == "US":
+            '''
+            config["layers"].append({
+                "id": "mountains",
+                "src": PHYSICAL_FILE,
+                "attributes": {
+                    "name": "name",
+                    "realname": "name"
+                },
+                "filter": {"and": [
+                    {"region": "North America"},
+                    {"featurecla": "Range/mtn"},
+                    ["name", "not in", [
+                        "SIERRA MADRE OCCIDENTAL",
+                        "SIERRA MADRE ORIENTAL",
+                        "COAST MOUNTAINS"
+                    ]],
+                ]}
+            })
+            config["layers"].append({
+                "id": "rivers",
+                "src": RIVERS_MEDIUM_FILE,
+                "attributes": {
+                    "name": "name",
+                    "realname": "name"
+                },
+                "filter": {"and": [
+                    ["name", "not in", []],
+                    ["scalerank", "not in", [4, 5, 6]],
+                    {"featurecla": "River"}
+                ]}
+            })
+            config["layers"].append({
+                "id": "lakes",
+                "src": LAKES_MEDIUM_FILE,
+                "attributes": {
+                    "name": "name",
+                    "realname": "name"
+                },
+                "filter": {"and": [
+                    ["scalerank", "not in", [4, 5, 6]],
+                    ["name", "not in", ["Lake Sevana"]],
+                    ["featurecla", "in", ["Lake", "Reservoir"]]
+                ]}
+            })
+            '''
+            config["layers"].append({
+                "id": "cities",
+                "src": MEDIUM_CITIES_FILE,
+                "attributes": {
+                    "name": "NAMEASCII",
+                    "realname": "NAME",
+                    "state-code": "ISO_A2",
+                    "population": "POP_MAX"
+                },
+                "filter": {"and": [
+                    ["ISO_A2", "in",
+                        ["US"]
+                     ],
+                    ["NAME", "not in", ["St. Paul", "Vancouver"]],
+                    cities_size_filter
+                ]}
+            })
         filename = state.lower()
         self.generate_map(config, filename)
