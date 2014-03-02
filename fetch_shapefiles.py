@@ -17,6 +17,7 @@ urls = [
     "http://biogeo.ucdavis.edu/data/gadm2/shp/ITA_adm.zip",
     "http://biogeo.ucdavis.edu/data/gadm2/shp/ESP_adm.zip",
     "http://biogeo.ucdavis.edu/data/gadm2/shp/FRA_adm.zip",
+    "http://download.geofabrik.de/europe/czech-republic-latest.shp.zip",
 ]
 
 

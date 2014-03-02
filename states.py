@@ -1,4 +1,6 @@
-from generator import MapGenerator
+# -*- coding: utf-8 -*-
+from generator import MapGenerator, SingleMapGenerator, dashrepl
+import re
 
 PROVINCES_BIG_FILE = "src/ne_10m_admin_1_states_provinces_lakes/ne_10m_admin_1_states_provinces_lakes.shp"
 ITALY_FILE = "src/ITA_adm/ITA_adm1.shp"
@@ -7,59 +9,67 @@ FRANCE_FILE = "src/FRA_adm/FRA_adm1.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
 MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
+BIG_CITIES_FILE = "src/ne_10m_populated_places/ne_10m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
+CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
 
 
 def cities_size_filter(record):
-    return record['POP_MAX'] > 5 * 10 ** 5
+    if record['ISO_A2'] == 'US':
+        min_pop = 5 * 10 ** 5
+    elif record['ISO_A2'] in ['AT', 'CZ']:
+        min_pop = 10 ** 4
+    elif record['ISO_A2'] in ['FR', 'ES', 'IT']:
+        min_pop = 1.5 * 10 ** 5
+    else:
+        min_pop = 3 * 10 ** 5
+    return record['POP_MAX'] > min_pop
 
 
-class StatesGenerator(MapGenerator):
-    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "ES", "IT", "FR", "CA", "AU"]
+def cz_cities_size_filter(record):
+    return record['population'] > 10 ** 4
 
-    def get_name(self, state):
-        if state in ["CZ", "US", "CN", "CA"]:
+
+class StateGenerator(SingleMapGenerator):
+    def __init__(self, code):
+        self.code = code
+        self.config = self.get_config()
+        self.map_name = self.get_map_name()
+
+    def get_name(self):
+        if self.code in ["CZ", "US", "CN", "CA"]:
             return "iso_3166_2"
-        elif state in ["DE", "AT", "AU", "IN"]:
+        elif self.code in ["DE", "AT", "AU", "IN"]:
             return "code_hasc"
-        elif state in ["IT", "FR"]:
+        elif self.code in ["IT", "FR"]:
             return "NAME_1"
-        elif state in ["ES"]:
+        elif self.code in ["ES"]:
             return "HASC_1"
         else:
             return "name"
 
-    def get_realname(self, state):
-        if state in ["IT", "ES", "FR"]:
-            return "NAME_1"
-        else:
-            return "name"
+    def get_realname(self):
+        return "name"
 
-    def get_bg_src(self, state):
-        if state in ["US", "CA"]:
+    def get_cities_src(self):
+        return MEDIUM_CITIES_FILE
+
+    def get_bg_src(self):
+        if self.code in ["US", "CA"]:
             return COUNTRIES_MEDIUM_FILE
         else:
             return COAST_FILE
 
-    def get_src(self, state):
-        if state == "IT":
-            return ITALY_FILE
-        elif state == "ES":
-            return SPAIN_FILE
-        elif state == "FR":
-            return FRANCE_FILE
-        else:
-            return PROVINCES_BIG_FILE
+    def get_src(self):
+        return PROVINCES_BIG_FILE
 
-    def get_filter(self, state):
-        if state in ["IT", "ES", "FR"]:
-            return ["HASC_1", "not in", ["ES.CN", "ES.CE"]]
-        elif state in ["IN", "CN", "US", "CA", "AU"]:
+    def get_filter(self):
+        if self.code in ["IN", "CN", "US", "CA", "AU"]:
             return {
                 "and": [
-                    {"iso_a2": state},
+                    {"iso_a2": self.code},
                     ["iso_3166_2", "not in", ["US-HI", "US-AK", "US-DC", "CA-"]],
                     ["code_hasc", "not in", ["AU", "AU.JB"]],
                     ["name", "not in", [
@@ -73,22 +83,41 @@ class StatesGenerator(MapGenerator):
                 ]
             }
         else:
-            return {"iso_a2": state}
+            return {"iso_a2": self.code}
 
-    def generate_one(self, state):
+    def get_cities_attributes(self):
+        return {
+            "name": "NAMEASCII",
+            "realname": "NAME",
+            "state-code": "ISO_A2",
+            "population": "POP_MAX"
+        }
+
+    def get_cities_filter(self):
+        filter = {"and": [
+            {"ISO_A2": self.code},
+            cities_size_filter
+        ]}
+        if self.code == "US":
+            filter['and'].append(["NAME", "not in", ["St. Paul", "Vancouver"]])
+        elif self.code == "CA":
+            filter['and'].append(["NAME", "not in", ["Hamilton", "Kitchener", "Oshawa"]])
+        return filter
+
+    def get_config(self):
         config = {
             "layers": [{
                 "id": "bg",
-                "src": self.get_bg_src(state),
+                "src": self.get_bg_src(),
                 "simplify": 5,
             }, {
                 "id": "states",
-                "src": self.get_src(state),
+                "src": self.get_src(),
                 "attributes": {
-                    "name": self.get_name(state),
-                    "realname": self.get_realname(state),
+                    "name": self.get_name(),
+                    "realname": self.get_realname(),
                 },
-                "filter": self.get_filter(state),
+                "filter": self.get_filter(),
             }],
             "bounds": {
                 "mode": "polygons",
@@ -98,86 +127,193 @@ class StatesGenerator(MapGenerator):
             }
         }
 
-        if state in ["US", "CN", "DE", "AU", "IT", "ES", "FR", "CA"]:
+        if self.code in ["US", "CN", "DE", "AU", "IT", "ES", "FR", "CA"]:
             config["layers"][1]["simplify"] = 1
-        if state in ["CZ", "AT"]:
+        if self.code in ["CZ", "AT"]:
             config["proj"] = {
                 "id": "laea",
                 "lon0": "auto",
                 "lat0": "auto"
             }
-        if state in ["US", "CA"]:
+        if self.code in ["US", "CA"]:
             config["layers"][0]["simplify"] = 2
             config["proj"] = {
                 "id": "lonlat",
                 "lon0": "auto",
                 "lat0": 40
             }
-        if state in ["IT", "CA"]:
+        if self.code in ["IT"]:
             config["layers"].pop(0)
 
-        if state == "US":
-            '''
-            config["layers"].append({
-                "id": "mountains",
-                "src": PHYSICAL_FILE,
-                "attributes": {
-                    "name": "name",
-                    "realname": "name"
-                },
-                "filter": {"and": [
-                    {"region": "North America"},
-                    {"featurecla": "Range/mtn"},
-                    ["name", "not in", [
-                        "SIERRA MADRE OCCIDENTAL",
-                        "SIERRA MADRE ORIENTAL",
-                        "COAST MOUNTAINS"
-                    ]],
-                ]}
-            })
-            config["layers"].append({
-                "id": "rivers",
-                "src": RIVERS_MEDIUM_FILE,
-                "attributes": {
-                    "name": "name",
-                    "realname": "name"
-                },
-                "filter": {"and": [
-                    ["name", "not in", []],
-                    ["scalerank", "not in", [4, 5, 6]],
-                    {"featurecla": "River"}
-                ]}
-            })
-            config["layers"].append({
-                "id": "lakes",
-                "src": LAKES_MEDIUM_FILE,
-                "attributes": {
-                    "name": "name",
-                    "realname": "name"
-                },
-                "filter": {"and": [
-                    ["scalerank", "not in", [4, 5, 6]],
-                    ["name", "not in", ["Lake Sevana"]],
-                    ["featurecla", "in", ["Lake", "Reservoir"]]
-                ]}
-            })
-            '''
+        if self.code in ["US", "CA", "DE", "AU", "AT", "CZ", "FR", "ES", "IT"]:
             config["layers"].append({
                 "id": "cities",
-                "src": MEDIUM_CITIES_FILE,
-                "attributes": {
-                    "name": "NAMEASCII",
-                    "realname": "NAME",
-                    "state-code": "ISO_A2",
-                    "population": "POP_MAX"
-                },
-                "filter": {"and": [
-                    ["ISO_A2", "in",
-                        ["US"]
-                     ],
-                    ["NAME", "not in", ["St. Paul", "Vancouver"]],
-                    cities_size_filter
-                ]}
+                "src": self.get_cities_src(),
+                "attributes": self.get_cities_attributes(),
+                "filter": self.get_cities_filter()
             })
-        filename = state.lower()
-        self.generate_map(config, filename)
+        return config
+
+
+class EsItFrGenerator(StateGenerator):
+    def get_realname(self):
+        return "NAME_1"
+
+    def get_filter(self):
+        return ["HASC_1", "not in", ["ES.CN", "ES.CE"]]
+
+
+class SpainGenerator(EsItFrGenerator):
+    def get_src(self):
+        return SPAIN_FILE
+
+
+class ItalyGenerator(EsItFrGenerator):
+    def get_src(self):
+        return ITALY_FILE
+
+    def hacky_fixes(self, map_data):
+        CODES = {
+            u'Abruzzo': u'IT-65',
+            u'Apulia': u'IT-75',
+            u'Basilicata': u'IT-77',
+            u'Calabria': u'IT-78',
+            u'Campania': u'IT-72',
+            u'Emilia-Romagna': u'IT-45',
+            u'Friuli-Venezia_Giulia': u'IT-36',
+            u'Lazio': u'IT-62',
+            u'Liguria': u'IT-42',
+            u'Lombardia': u'IT-25',
+            u'Marche': u'IT-57',
+            u'Molise': u'IT-67',
+            u'Piemonte': u'IT-21',
+            u'Sardegna': u'IT-88',
+            u'Sicily': u'IT-82',
+            u'Toscana': u'IT-52',
+            u'Trentino-Alto_Adige': u'IT-32',
+            u'Umbria': u'IT-55',
+            u'Valle_d\'Aosta': u'IT-23',
+            u'Veneto': u'IT-34',
+        }
+        pattern = re.compile('-name="(' + '|'.join(CODES.keys()) + ')"')
+        map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+        return map_data
+
+
+class FranceGenerator(EsItFrGenerator):
+    def get_src(self):
+        return FRANCE_FILE
+
+    def hacky_fixes(self, map_data):
+        CODES = {
+            u'Alsace': u'FR-A',
+            u'Aquitaine': u'FR-B',
+            u'Auvergne': u'FR-C',
+            u'Basse-Normandie': u'FR-P',
+            u'Bourgogne': u'FR-D',
+            u'Bretagne': u'FR-E',
+            u'Centre': u'FR-F',
+            u'Champagne-Ardenne': u'FR-G',
+            u'Corse': u'FR-H',
+            u'Franche-Comte': u'FR-I',
+            u'Haute-Normandie': u'FR-Q',
+            u'Ile-de-France': u'FR-J',
+            u'Languedoc-Roussillon': u'FR-K',
+            u'Limousin': u'FR-L',
+            u'Lorraine': u'FR-M',
+            u'Midi-Pyrenees': u'FR-N',
+            u'Nord-Pas-de-Calais': u'FR-O',
+            u'Pays_de_la_Loire': u'FR-R',
+            u'Picardie': u'FR-S',
+            u'Poitou-Charentes': u'FR-T',
+            u'Provence-Alpes-Cote-d\'Azur': u'FR-U',
+            u'Rhone-Alpes': u'FR-V',
+        }
+        pattern = re.compile(u'-name="(' + u'|'.join(CODES.keys()) + u')"')
+        map_data = map_data.decode("utf-8")
+        map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+        map_data = re.sub(r'"[A-Z]{2}\-[A-Z]"', dashrepl, map_data)
+        map_data = map_data.encode("utf-8")
+        return map_data
+
+
+class ChinaGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace('"CN-"', '"CN-35"')
+        return map_data
+
+
+class CanadaGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace('-name="London"', '-name="London_Ca"')
+        return map_data
+
+
+class UsaGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace(',559', ',564')
+        map_data = map_data.replace('r="2"', 'r="8"')
+        return map_data
+
+
+class IndiaGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace('data-name="IN." data-realname="Gujarat"',
+                                    'data-name="IN.GJ" data-realname="Gujarat"')
+        map_data = map_data.replace('data-name="IN." data-realname="Tamil Nadu"',
+                                    'data-name="IN.TN" data-realname="Tamil Nadu"')
+        return map_data
+
+
+class CzechGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace(
+            "M0.000000,0.000000L0.000000,567.267337" +
+            "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
+            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+        return map_data
+
+    def get_cities_attributes(self):
+        return {
+            "name": "name",
+            "realname": "name",
+            "population": "population"
+        }
+
+    def get_cities_filter(self):
+        filter = {"and": [
+            ["type", "in", ["city", "town"]],
+            cz_cities_size_filter
+        ]}
+        return filter
+
+    def get_cities_src(self):
+        return CZECH_CITIES_FILE
+
+
+class GermanyGenerator(StateGenerator):
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace('"DE."', '"DE.BB"')
+        map_data = map_data.replace('r="2"', 'r="16"')
+        return map_data
+
+
+class StatesGenerator(MapGenerator):
+    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "ES", "IT", "FR", "CA", "AU"]
+    generators = {
+        "CZ": CzechGenerator,
+        "DE": GermanyGenerator,
+        "AT": StateGenerator,
+        "CN": ChinaGenerator,
+        "IN": IndiaGenerator,
+        "US": UsaGenerator,
+        "ES": SpainGenerator,
+        "IT": ItalyGenerator,
+        "FR": FranceGenerator,
+        "CA": CanadaGenerator,
+        "AU": StateGenerator,
+    }
+
+    def generate_one(self, state):
+        gen = self.generators[state](state)
+        gen.generate_map()
