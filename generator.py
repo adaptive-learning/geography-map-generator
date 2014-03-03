@@ -2,6 +2,7 @@
 from kartograph import Kartograph
 import re
 import unicodedata
+from subprocess import Popen, PIPE
 
 
 class MapGenerator():
@@ -58,6 +59,12 @@ class SingleMapGenerator():
             # TODO: set missing iso code of Northern Cyprus. But what code?
         map_data = map_data.replace('r="2"', 'r="16"')
         mapFile.write(map_data)
+        mapFile.close()
+
+        p = Popen(["xmllint", "--format", file_name], stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        mapFile = open(file_name, 'w')
+        mapFile.write(out)
         mapFile.close()
 
     def generate_map(self):
