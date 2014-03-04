@@ -33,6 +33,9 @@ def cz_cities_size_filter(record):
 
 
 class StateGenerator(SingleMapGenerator):
+    state_id = "state"
+    state_src = PROVINCES_BIG_FILE
+
     def __init__(self, code):
         self.code = code
         self.config = self.get_config()
@@ -62,9 +65,6 @@ class StateGenerator(SingleMapGenerator):
         else:
             return COAST_FILE
 
-    def get_src(self):
-        return PROVINCES_BIG_FILE
-
     def get_filter(self):
         if self.code in ["IN", "CN", "US", "CA", "AU"]:
             return {
@@ -87,8 +87,8 @@ class StateGenerator(SingleMapGenerator):
 
     def get_cities_attributes(self):
         return {
-            "name": "NAMEASCII",
-            "realname": "NAME",
+            "code": "NAMEASCII",
+            "name": "NAME",
             "state-code": "ISO_A2",
             "population": "POP_MAX"
         }
@@ -111,18 +111,18 @@ class StateGenerator(SingleMapGenerator):
                 "src": self.get_bg_src(),
                 "simplify": 5,
             }, {
-                "id": "states",
-                "src": self.get_src(),
+                "id": self.state_id,
+                "src": self.state_src,
                 "attributes": {
-                    "name": self.get_name(),
-                    "realname": self.get_realname(),
+                    "code": self.get_name(),
+                    "name": self.get_realname(),
                 },
                 "filter": self.get_filter(),
             }],
             "bounds": {
                 "mode": "polygons",
                 "data": {
-                    "layer": "states",
+                    "layer": self.state_id,
                 },
             }
         }
@@ -147,7 +147,7 @@ class StateGenerator(SingleMapGenerator):
 
         if self.code in ["US", "CA", "DE", "AU", "AT", "CZ", "FR", "ES", "IT"]:
             config["layers"].append({
-                "id": "cities",
+                "id": "city",
                 "src": self.get_cities_src(),
                 "attributes": self.get_cities_attributes(),
                 "filter": self.get_cities_filter()
@@ -164,13 +164,13 @@ class EsItFrGenerator(StateGenerator):
 
 
 class SpainGenerator(EsItFrGenerator):
-    def get_src(self):
-        return SPAIN_FILE
+    state_id = "autonomous_comunity"
+    state_src = SPAIN_FILE
 
 
 class ItalyGenerator(EsItFrGenerator):
-    def get_src(self):
-        return ITALY_FILE
+    state_id = "region_it"
+    state_src = ITALY_FILE
 
     def hacky_fixes(self, map_data):
         CODES = {
@@ -195,14 +195,14 @@ class ItalyGenerator(EsItFrGenerator):
             u'Valle_d\'Aosta': u'IT-23',
             u'Veneto': u'IT-34',
         }
-        pattern = re.compile('-name="(' + '|'.join(CODES.keys()) + ')"')
-        map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+        pattern = re.compile('-code="(' + '|'.join(CODES.keys()) + ')"')
+        map_data = pattern.sub(lambda x: u'-code="' + CODES[x.group(1)] + u'"', map_data)
         return map_data
 
 
 class FranceGenerator(EsItFrGenerator):
-    def get_src(self):
-        return FRANCE_FILE
+    state_id = "region"
+    state_src = FRANCE_FILE
 
     def hacky_fixes(self, map_data):
         CODES = {
@@ -229,23 +229,27 @@ class FranceGenerator(EsItFrGenerator):
             u'Provence-Alpes-Cote-d\'Azur': u'FR-U',
             u'Rhone-Alpes': u'FR-V',
         }
-        pattern = re.compile(u'-name="(' + u'|'.join(CODES.keys()) + u')"')
+        pattern = re.compile(u'-code="(' + u'|'.join(CODES.keys()) + u')"')
         map_data = map_data.decode("utf-8")
-        map_data = pattern.sub(lambda x: u'-name="' + CODES[x.group(1)] + u'"', map_data)
+        map_data = pattern.sub(lambda x: u'-code="' + CODES[x.group(1)] + u'"', map_data)
         map_data = re.sub(r'"[A-Z]{2}\-[A-Z]"', dashrepl, map_data)
         map_data = map_data.encode("utf-8")
         return map_data
 
 
 class ChinaGenerator(StateGenerator):
+    state_id = "province"
+
     def hacky_fixes(self, map_data):
         map_data = map_data.replace('"CN-"', '"CN-35"')
         return map_data
 
 
 class CanadaGenerator(StateGenerator):
+    state_id = "province"
+
     def hacky_fixes(self, map_data):
-        map_data = map_data.replace('-name="London"', '-name="London_Ca"')
+        map_data = map_data.replace('-code="London"', '-code="London_Ca"')
         return map_data
 
 
@@ -258,14 +262,16 @@ class UsaGenerator(StateGenerator):
 
 class IndiaGenerator(StateGenerator):
     def hacky_fixes(self, map_data):
-        map_data = map_data.replace('data-name="IN." data-realname="Gujarat"',
-                                    'data-name="IN.GJ" data-realname="Gujarat"')
-        map_data = map_data.replace('data-name="IN." data-realname="Tamil Nadu"',
-                                    'data-name="IN.TN" data-realname="Tamil Nadu"')
+        map_data = map_data.replace('data-code="IN." data-name="Gujarat"',
+                                    'data-code="IN.GJ" data-name="Gujarat"')
+        map_data = map_data.replace('data-code="IN." data-name="Tamil Nadu"',
+                                    'data-code="IN.TN" data-name="Tamil Nadu"')
         return map_data
 
 
 class CzechGenerator(StateGenerator):
+    state_id = "region_cz"
+
     def hacky_fixes(self, map_data):
         map_data = map_data.replace(
             "M0.000000,0.000000L0.000000,567.267337" +
@@ -275,8 +281,8 @@ class CzechGenerator(StateGenerator):
 
     def get_cities_attributes(self):
         return {
+            "code": "name",
             "name": "name",
-            "realname": "name",
             "population": "population"
         }
 
@@ -292,10 +298,16 @@ class CzechGenerator(StateGenerator):
 
 
 class GermanyGenerator(StateGenerator):
+    state_id = "bundesland"
+
     def hacky_fixes(self, map_data):
         map_data = map_data.replace('"DE."', '"DE.BB"')
         map_data = map_data.replace('r="2"', 'r="16"')
         return map_data
+
+
+class AustriaGenerator(StateGenerator):
+    state_id = "bundesland"
 
 
 class StatesGenerator(MapGenerator):
@@ -303,7 +315,7 @@ class StatesGenerator(MapGenerator):
     generators = {
         "CZ": CzechGenerator,
         "DE": GermanyGenerator,
-        "AT": StateGenerator,
+        "AT": AustriaGenerator,
         "CN": ChinaGenerator,
         "IN": IndiaGenerator,
         "US": UsaGenerator,

@@ -30,11 +30,11 @@ class ContinentsGenerator(MapGenerator):
     def generate_one(self, continent):
         config = {
             "layers": [{
-                "id": "states",
+                "id": "state",
                 "src": COUNTRIES_FILE,
                 "attributes": {
-                    "name": "iso_a2",
-                    "realname": "name"
+                    "code": "iso_a2",
+                    "name": "name"
                 },
                 "filter": self.get_filter(continent)
             }]
@@ -59,8 +59,8 @@ class ContinentsGenerator(MapGenerator):
                 "id": "mountains",
                 "src": PHYSICAL_FILE,
                 "attributes": {
-                    "name": "name",
-                    "realname": "name"
+                    "code": "name",
+                    "name": "name"
                 },
                 "filter": {"and": [
                     {"region": "Europe"},
@@ -69,11 +69,11 @@ class ContinentsGenerator(MapGenerator):
             })
             '''
             config["layers"].append({
-                "id": "rivers",
+                "id": "river",
                 "src": RIVERS_MEDIUM_FILE,
                 "attributes": {
-                    "name": "name",
-                    "realname": "name"
+                    "code": "name",
+                    "name": "name"
                 },
                 "filter": {"and": [
                     ["name", "not in", ["Dicle", "Al Furat", "Firat", "Tigris"]],
@@ -81,11 +81,11 @@ class ContinentsGenerator(MapGenerator):
                 ]}
             })
             config["layers"].append({
-                "id": "lakes",
+                "id": "lake",
                 "src": LAKES_MEDIUM_FILE,
                 "attributes": {
-                    "name": "name",
-                    "realname": "name"
+                    "code": "name",
+                    "name": "name"
                 },
                 "filter": {"and": [
                     ["scalerank", "not in", [4, 5, 6]],
@@ -95,11 +95,11 @@ class ContinentsGenerator(MapGenerator):
             })
             '''
             config["layers"].append({
-                "id": "cities",
+                "id": "city",
                 "src": CITIES_FILE,
                 "attributes": {
-                    "name": "NAMEASCII",
-                    "realname": "NAME",
+                    "code": "NAMEASCII",
+                    "name": "NAME",
                     "state-code": "ISO_A2",
                     "population": "POP_MAX"
                 },
@@ -108,24 +108,6 @@ class ContinentsGenerator(MapGenerator):
                         ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA"]
                      ],
                     ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]]
-                ]}
-            })
-        elif continent == "North America":
-            config["layers"].append({
-                "id": "cities",
-                "src": MEDIUM_CITIES_FILE,
-                "attributes": {
-                    "name": "NAMEASCII",
-                    "realname": "NAME",
-                    "state-code": "ISO_A2",
-                    "population": "POP_MAX"
-                },
-                "filter": {"and": [
-                    ["ISO_A2", "not in",
-                        ["ML", "SM", "PT", "GN", "VE", "CO"]
-                     ],
-                    ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]],
-                    cities_size_filter
                 ]}
             })
         elif continent == "Oceania":

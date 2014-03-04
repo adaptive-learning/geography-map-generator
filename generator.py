@@ -2,7 +2,7 @@
 from kartograph import Kartograph
 import re
 import unicodedata
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 
 class MapGenerator():
@@ -35,7 +35,7 @@ class SingleMapGenerator():
         mapFile = open(file_name, 'w')
 
         map_data = re.sub(r'"[A-Z]{2}"', dashrepl, map_data)
-        map_data = re.sub(r'\-name="[^"]*"', slugrepl, map_data)
+        map_data = re.sub(r'\-code="[^"]*"', slugrepl, map_data)
         map_data = self.hacky_fixes(map_data)
 
         map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
@@ -44,7 +44,7 @@ class SingleMapGenerator():
             # set missing iso codes of Kosovo xk
             map_data = map_data.replace('"-99"', '"xk"')
             map_data = map_data.replace('r="2"', 'r="10"')
-            map_data = map_data.replace('-name="San Marino"', '-name="San_Marino"')
+            map_data = map_data.replace('-code="San Marino"', '-code="San_Marino"')
             # Move Vienna to the west
             map_data = map_data.replace('cx="485.279892452"', 'cx="480.279892452"')
             # Move Bratislava to the east
@@ -52,18 +52,16 @@ class SingleMapGenerator():
         elif "world" in file_name:
             map_data = map_data.replace('r="2"', 'r="4"')
             # set missing iso codes of Kosovo and Somaliland to xk and xs
-            map_data = map_data.replace('data-name="-99" data-realname="Kosovo"',
-                                        'data-name="xk" data-realname="Kosovo"')
-            map_data = map_data.replace('data-name="-99" data-realname="Somaliland"',
-                                        'data-name="xs" data-realname="Somaliland"')
+            map_data = map_data.replace('data-code="-99" data-name="Kosovo"',
+                                        'data-code="xk" data-name="Kosovo"')
+            map_data = map_data.replace('data-code="-99" data-name="Somaliland"',
+                                        'data-code="xs" data-name="Somaliland"')
             # TODO: set missing iso code of Northern Cyprus. But what code?
         map_data = map_data.replace('r="2"', 'r="16"')
-        mapFile.write(map_data)
-        mapFile.close()
 
-        p = Popen(["xmllint", "--format", file_name], stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        mapFile = open(file_name, 'w')
+        p = Popen(["xmllint", "--format", '-'], stdout=PIPE, stderr=STDOUT, stdin=PIPE)
+        out, err = p.communicate(input=map_data)
+
         mapFile.write(out)
         mapFile.close()
 

@@ -40,14 +40,16 @@ def cities_size_filter(record):
 
 
 class WorldGenerator(MapGenerator):
+    default_codes = ["world"]
+
     def generate_one(self, code):
         config = {
             "layers": [{
-                "id": "states",
+                "id": "state",
                 "src": COUNTRIES_FILE,
                 "attributes": {
-                    "name": "iso_a2",
-                    "realname": "name",
+                    "code": "iso_a2",
+                    "name": "name",
                 },
                 "filter": ["iso_a2", "is not", "AQ"]
             }]
@@ -64,16 +66,16 @@ class CityStatesGenerator(MapGenerator):
                 "id": "bg",
                 "src": COUNTRIES_MEDIUM_FILE,
                 "attributes": {
-                    "name": "iso_a2",
-                    "realname": "name",
+                    "code": "iso_a2",
+                    "name": "name",
                 },
                 "filter": {"iso_a2": state}
             }, {
-                "id": "cities",
+                "id": "city",
                 "src": CITIES_BIG_FILE,
                 "attributes": {
+                    "code": "NAME",
                     "name": "NAME",
-                    "realname": "NAME",
                 },
                 "filter": {
                     "and": [
