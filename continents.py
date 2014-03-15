@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from generator import MapGenerator
 
 COUNTRIES_FILE = "src/ne_110m_admin_0_countries_lakes/ne_110m_admin_0_countries_lakes.shp"
@@ -34,7 +35,8 @@ class ContinentsGenerator(MapGenerator):
                 "src": COUNTRIES_FILE,
                 "attributes": {
                     "code": "iso_a2",
-                    "name": "name"
+                    "name": "name",
+                    "population": "pop_est",
                 },
                 "filter": self.get_filter(continent)
             }]
@@ -54,6 +56,20 @@ class ContinentsGenerator(MapGenerator):
                 "src": COUNTRIES_FILE,
                 "join": {'export-ids': False},
                 "filter": self.get_filter(continent)
+            })
+            config["layers"].append({
+                "id": "island",
+                "src": PHYSICAL_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "charset": "cp1252",
+                "filter": {"and": [
+                    {"region": "Europe"},
+                    {"featurecla": "Island"},
+                    lambda r: r["name"].decode('cp1252').encode('utf') != "Pelopónnisos",
+                ]}
             })
             config["layers"].append({
                 "id": "mountains",

@@ -50,6 +50,7 @@ class WorldGenerator(MapGenerator):
                 "attributes": {
                     "code": "iso_a2",
                     "name": "name",
+                    "population": "pop_est",
                 },
                 "filter": ["iso_a2", "is not", "AQ"]
             }]

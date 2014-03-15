@@ -8,7 +8,6 @@ SPAIN_FILE = "src/ESP_adm/ESP_adm1.shp"
 FRANCE_FILE = "src/FRA_adm/FRA_adm1.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
-MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
 BIG_CITIES_FILE = "src/ne_10m_populated_places/ne_10m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
@@ -57,7 +56,7 @@ class StateGenerator(SingleMapGenerator):
         return "name"
 
     def get_cities_src(self):
-        return MEDIUM_CITIES_FILE
+        return BIG_CITIES_FILE
 
     def get_bg_src(self):
         if self.code in ["US", "CA"]:
@@ -142,10 +141,8 @@ class StateGenerator(SingleMapGenerator):
                 "lon0": "auto",
                 "lat0": 40
             }
-        if self.code in ["IT"]:
-            config["layers"].pop(0)
 
-        if self.code in ["US", "CA", "DE", "AU", "AT", "CZ", "FR", "ES", "IT"]:
+        if self.code in ["US", "CA", "DE", "AU", "AT", "CZ", "FR", "ES", "IT", "GB"]:
             config["layers"].append({
                 "id": "city",
                 "src": self.get_cities_src(),
@@ -171,6 +168,11 @@ class SpainGenerator(EsItFrGenerator):
 class ItalyGenerator(EsItFrGenerator):
     state_id = "region_it"
     state_src = ITALY_FILE
+
+    def get_config(self):
+        config = super(ItalyGenerator, self).get_config()
+        config["layers"].pop(0)
+        return config
 
     def hacky_fixes(self, map_data):
         CODES = {
@@ -289,6 +291,7 @@ class CzechGenerator(StateGenerator):
     def get_cities_filter(self):
         filter = {"and": [
             ["type", "in", ["city", "town"]],
+            ["name", "not in", ["Kudowa-Zdrój", "Klingenthal", "Hejnice", "Rejdice"]],
             cz_cities_size_filter
         ]}
         return filter
@@ -306,12 +309,23 @@ class GermanyGenerator(StateGenerator):
         return map_data
 
 
+class GBGenerator(StateGenerator):
+    def get_config(self):
+        config = StateGenerator.get_config(self)
+        config["layers"].pop(1)
+        config["bounds"] = {
+            "mode": "bbox",
+            "data": [-10, 50, 2, 59]
+        }
+        return config
+
+
 class AustriaGenerator(StateGenerator):
     state_id = "bundesland"
 
 
 class StatesGenerator(MapGenerator):
-    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "ES", "IT", "FR", "CA", "AU"]
+    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "CA", "AU", "GB", "ES", "IT", "FR"]
     generators = {
         "CZ": CzechGenerator,
         "DE": GermanyGenerator,
@@ -324,6 +338,7 @@ class StatesGenerator(MapGenerator):
         "FR": FranceGenerator,
         "CA": CanadaGenerator,
         "AU": StateGenerator,
+        "GB": GBGenerator,
     }
 
     def generate_one(self, state):
