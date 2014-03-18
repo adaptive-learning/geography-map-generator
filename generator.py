@@ -40,6 +40,9 @@ class SingleMapGenerator():
 
         map_data = re.sub(r'("[A-Z]{2})\.([A-Z0-9]{2}")', "\\1-\\2", map_data)
         map_data = re.sub(r'"[A-Z]{2}\-[A-Z0-9]{2}"', dashrepl, map_data)
+        if "africa" in file_name:
+            # set missing iso codes of Somaliland xs
+            map_data = map_data.replace('"-99"', '"xs"')
         if "europe" in file_name:
             # set missing iso codes of Kosovo xk
             map_data = map_data.replace('"-99"', '"xk"')
