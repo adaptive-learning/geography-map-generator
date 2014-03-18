@@ -49,7 +49,7 @@ class ContinentsGenerator(MapGenerator):
         elif continent == "Europe":
             config["bounds"] = {
                 "mode": "bbox",
-                "data": [-15, 36, 50, 70]
+                "data": [-15, 35, 50, 70]
             }
             config["layers"].insert(0, {
                 "id": "bg",
@@ -60,6 +60,7 @@ class ContinentsGenerator(MapGenerator):
             config["layers"].append({
                 "id": "island",
                 "src": PHYSICAL_FILE,
+                "simplify": 1,
                 "attributes": {
                     "code": "name",
                     "name": "name"
@@ -121,7 +122,7 @@ class ContinentsGenerator(MapGenerator):
                 },
                 "filter": {"and": [
                     ["ISO_A2", "not in",
-                        ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA"]
+                        ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA", "SY", "KW", "LB"]
                      ],
                     ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]]
                 ]}
