@@ -17,7 +17,7 @@ CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
 
 def cities_size_filter(record):
     if record['ISO_A2'] == 'US':
-        min_pop = 5 * 10 ** 5
+        min_pop = 10 ** 6
     elif record['ISO_A2'] in ['AT', 'CZ']:
         min_pop = 10 ** 4
     elif record['ISO_A2'] in ['FR', 'ES', 'IT']:
