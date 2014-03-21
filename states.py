@@ -13,6 +13,8 @@ PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_pol
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
+CZECH_RIVERS_FILE = "src/CZE_wat/CZE_water_lines_dcw.shp"
+SLOVAK_CITIES_FILE = "src/slovakia-latest.shp/places.shp"
 
 
 def cities_size_filter(record):
@@ -43,7 +45,7 @@ class StateGenerator(SingleMapGenerator):
     def get_name(self):
         if self.code in ["CZ", "US", "CN", "CA"]:
             return "iso_3166_2"
-        elif self.code in ["DE", "AT", "AU", "IN"]:
+        elif self.code in ["DE", "AT", "AU", "IN", "SK"]:
             return "code_hasc"
         elif self.code in ["IT", "FR"]:
             return "NAME_1"
@@ -128,7 +130,7 @@ class StateGenerator(SingleMapGenerator):
 
         if self.code in ["US", "CN", "DE", "AU", "IT", "ES", "FR", "CA"]:
             config["layers"][1]["simplify"] = 1
-        if self.code in ["CZ", "AT"]:
+        if self.code in ["CZ", "AT", "SK"]:
             config["proj"] = {
                 "id": "laea",
                 "lon0": "auto",
@@ -142,7 +144,7 @@ class StateGenerator(SingleMapGenerator):
                 "lat0": 40
             }
 
-        if self.code in ["US", "CA", "DE", "AU", "AT", "CZ", "FR", "ES", "IT", "GB"]:
+        if self.code not in ["CN", "IN"]:
             config["layers"].append({
                 "id": "city",
                 "src": self.get_cities_src(),
@@ -271,15 +273,8 @@ class IndiaGenerator(StateGenerator):
         return map_data
 
 
-class CzechGenerator(StateGenerator):
+class CzSkGenerator(StateGenerator):
     state_id = "region_cz"
-
-    def hacky_fixes(self, map_data):
-        map_data = map_data.replace(
-            "M0.000000,0.000000L0.000000,567.267337" +
-            "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
-            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
-        return map_data
 
     def get_cities_attributes(self):
         return {
@@ -291,13 +286,62 @@ class CzechGenerator(StateGenerator):
     def get_cities_filter(self):
         filter = {"and": [
             ["type", "in", ["city", "town"]],
-            ["name", "not in", ["Kudowa-Zdrój", "Klingenthal", "Hejnice", "Rejdice"]],
+            ["name", "not in", ["Kudowa-Zdrój", "Klingenthal", "Hejnice", "Rejdice",
+                                "Nyergesújfalu", "Lábatlan", "Petržalka", "Nové Mesto",
+                                "Ružinov"]],
             cz_cities_size_filter
         ]}
         return filter
 
+
+class CzechGenerator(CzSkGenerator):
     def get_cities_src(self):
         return CZECH_CITIES_FILE
+
+    """
+    def get_config(self):
+        config = super(CzSkGenerator, self).get_config()
+        config["layers"].append({
+            "id": "river",
+            "src": CZECH_RIVERS_FILE,
+            "attributes": {
+                "code": "NAM",
+                "name": "NAM"
+            },
+            "filter": {"and": [
+                ["NAM", "not in", ["UNK"]],
+            ]},
+            "join": {
+                "group-by": "NAM",
+                "export-ids": False
+            }
+        })
+        return config
+    """
+
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace(
+            "M0.000000,0.000000L0.000000,567.267337" +
+            "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
+            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+        return map_data
+
+
+class SlovakiaGenerator(CzSkGenerator):
+    def get_cities_src(self):
+        return SLOVAK_CITIES_FILE
+
+    def get_config(self):
+        config = super(CzSkGenerator, self).get_config()
+        config["bounds"]["padding"] = 0.01
+        return config
+
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace(
+            "M0.000000,0.000000L0.000000,510.450681" +
+            "L1000.000000,510.450681L1000.000000,0.000000L0.000000,0.000000Z",
+            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+        return map_data
 
 
 class GermanyGenerator(StateGenerator):
@@ -325,7 +369,7 @@ class AustriaGenerator(StateGenerator):
 
 
 class StatesGenerator(MapGenerator):
-    default_codes = ["CZ", "DE", "AT", "CN", "IN", "US", "CA", "AU", "GB", "ES", "IT", "FR"]
+    default_codes = ["CZ", "SK", "DE", "AT", "CN", "IN", "US", "CA", "AU", "GB", "ES", "IT", "FR"]
     generators = {
         "CZ": CzechGenerator,
         "DE": GermanyGenerator,
@@ -338,6 +382,7 @@ class StatesGenerator(MapGenerator):
         "FR": FranceGenerator,
         "CA": CanadaGenerator,
         "AU": StateGenerator,
+        "SK": SlovakiaGenerator,
         "GB": GBGenerator,
     }
 

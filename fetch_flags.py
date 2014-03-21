@@ -129,6 +129,14 @@ codes = [
     "ES-VC",
     "ES-CE",
     "ES-ML",
+    "SK-BC",
+    "SK-BL",
+    "SK-KI",
+    "SK-NI",
+    "SK-PV",
+    "SK-TC",
+    "SK-TA",
+    "SK-ZI",
 ]
 urls = [
     "http://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Flag_of_Burgenland.svg/22px-Flag_of_Burgenland.svg.png",
@@ -252,6 +260,14 @@ urls = [
     "http://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Flag_of_the_Valencian_Community_%282x3%29.svg/23px-Flag_of_the_Valencian_Community_%282x3%29.svg.png",
     "http://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Flag_Ceuta.svg/23px-Flag_Ceuta.svg.png",
     "http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Flag_of_Melilla.svg/23px-Flag_of_Melilla.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Banskobystricky_vlajka.svg/23px-Banskobystricky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Bratislavsky_vlajka.svg/23px-Bratislavsky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Kosicky_vlajka.svg/23px-Kosicky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Nitriansky_vlajka.svg/23px-Nitriansky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Presovsky_vlajka.svg/23px-Presovsky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Trenciansky_vlajka.svg/23px-Trenciansky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Trnavsky_vlajka.svg/23px-Trnavsky_vlajka.svg.png",
+    "http://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Zilinsky_vlajka.svg/23px-Zilinsky_vlajka.svg.png",
 ]
 
 

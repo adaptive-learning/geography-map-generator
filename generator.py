@@ -20,7 +20,7 @@ class MapGenerator():
         print "generated map:", file_name
 
 
-class SingleMapGenerator():
+class SingleMapGenerator(object):
     def get_map_name(self):
         return self.code.lower()
 
