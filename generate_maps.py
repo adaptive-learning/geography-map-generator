@@ -26,9 +26,6 @@ def main():
         if maps == 'states':
             codes = [c.upper() for c in codes]
             generator = StatesGenerator()
-        elif maps == 'citystates':
-            codes = [c.upper() for c in codes]
-            generator = CityStatesGenerator()
         elif maps == 'continents':
             generator = ContinentsGenerator()
         elif maps == 'world':
@@ -75,37 +72,6 @@ class WorldGenerator(MapGenerator):
         }
         self.generate_map(config, "world")
 
-
-class CityStatesGenerator(MapGenerator):
-    default_codes = ["IT", "ES", "GB"]
-
-    def generate_one(self, state):
-        config = {
-            "layers": [{
-                "id": "bg",
-                "src": COUNTRIES_MEDIUM_FILE,
-                "attributes": {
-                    "code": "iso_a2",
-                    "name": "name",
-                },
-                "filter": {"iso_a2": state}
-            }, {
-                "id": "city",
-                "src": CITIES_BIG_FILE,
-                "attributes": {
-                    "code": "NAME",
-                    "name": "NAME",
-                },
-                "filter": {
-                    "and": [
-                        cities_size_filter,
-                        {"ISO_A2": state}
-                    ]
-                }
-            }]
-        }
-        filename = state.lower()
-        self.generate(config, filename)
 
 if __name__ == '__main__':
     main()
