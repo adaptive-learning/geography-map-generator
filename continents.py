@@ -44,8 +44,43 @@ class ContinentsGenerator(MapGenerator):
         if continent == "Asia":
             config["bounds"] = {
                 "mode": "bbox",
-                "data": [40, -10, 145, 55]
+                "data": [35, -10, 145, 55]
             }
+        if continent == "Asia":
+            config["layers"].insert(0, {
+                "id": "bg",
+                "src": COUNTRIES_FILE,
+                "join": {'export-ids': False},
+                "filter": self.get_filter(continent)
+            })
+            config["layers"].append({
+                "id": "island",
+                "src": PHYSICAL_FILE,
+                "simplify": 1,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "charset": "cp1252",
+                "filter": {"and": [
+                    {"region": continent},
+                    {"featurecla": "Island"},
+                    lambda r: r["scalerank"] < 5,
+                ]}
+            })
+            config["layers"].append({
+                "id": "mountains",
+                "src": PHYSICAL_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    {"region": continent},
+                    {"featurecla": "Range/mtn"},
+                    lambda r: r["scalerank"] < 3,
+                ]}
+            })
         elif continent == "Europe":
             config["bounds"] = {
                 "mode": "bbox",
@@ -67,7 +102,7 @@ class ContinentsGenerator(MapGenerator):
                 },
                 "charset": "cp1252",
                 "filter": {"and": [
-                    {"region": "Europe"},
+                    {"region": continent},
                     {"featurecla": "Island"},
                     lambda r: r["name"].decode('cp1252').encode('utf') != "Pelopónnisos",
                 ]}
