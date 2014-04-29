@@ -5,7 +5,7 @@ COUNTRIES_FILE = "src/ne_110m_admin_0_countries_lakes/ne_110m_admin_0_countries_
 CITIES_FILE = "src/ne_110m_populated_places/ne_110m_populated_places.shp"
 MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
-RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
+RIVERS_MEDIUM_FILE = "my_src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 
@@ -28,9 +28,53 @@ class ContinentsGenerator(MapGenerator):
         else:
             return {"continent": continent}
 
+    def cities_filter(self, continent):
+        filters = {
+            'Asia': {"and": [
+                ["ISO_A2", "not in",
+                    ["MK", "XK", "HR", "AL", "BG", "BA", "SC", "MT", "HU",
+                     "RO", "GR", "UA", "ET", "IT", "RU", "KE", "EG", "ME",
+                     "KM", "SM", "TZ", "-99", "DJ", "MD", "SO", "ER", "RS",
+                     "SD", "VA"]
+                 ],
+                ["NAME", "not in", ["Sri Jawewardenepura Kotte", "Kyoto"]]
+            ]},
+            'Europe': {"and": [
+                ["ISO_A2", "not in",
+                    ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA", "SY", "KW", "LB"]
+                 ],
+                ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]]
+            ]},
+            "Africa": {"and": [
+                ["ISO_A2", "not in",
+                    ["IQ", "CY", "TR", "AM", "GE", "SY", "KW", "LB", "MT",
+                     "QA", "BH", "GW", "JO", "IL", "YE", "IR", "SA"]
+                 ],
+                ["NAME", "not in", ["Brazzaville", "Lobamba", "Cotonou"]]
+            ]},
+            "North America": {"and": [
+                ["ISO_A2", "not in",
+                    ["VE", "IS", "PT", "SM", "EH", "MA", "SL", "GM", "CV",
+                     "GW", "MR", "ML", "GN"]
+                 ],
+                ["NAME", "not in", ["Sri Jawewardenepura Kotte", "Kyoto"]]
+            ]},
+            "South America": {"and": [
+                ["ISO_A2", "not in", ["TT", "GD", "PA"]],
+                ["NAME", "not in", ["Valparaiso"]],
+            ]},
+            "Oceania": ["ISO_A2", "not in", ["TL"]],
+        }
+        return filters.get(continent, {})
+
     def generate_one(self, continent):
         config = {
             "layers": [{
+                "id": "bg",
+                "src": COUNTRIES_FILE,
+                "join": {'export-ids': False},
+                "filter": self.get_filter(continent)
+            }, {
                 "id": "state",
                 "src": COUNTRIES_FILE,
                 "attributes": {
@@ -46,13 +90,6 @@ class ContinentsGenerator(MapGenerator):
                 "mode": "bbox",
                 "data": [35, -10, 145, 55]
             }
-        if continent == "Asia":
-            config["layers"].insert(0, {
-                "id": "bg",
-                "src": COUNTRIES_FILE,
-                "join": {'export-ids': False},
-                "filter": self.get_filter(continent)
-            })
             config["layers"].append({
                 "id": "island",
                 "src": PHYSICAL_FILE,
@@ -86,12 +123,6 @@ class ContinentsGenerator(MapGenerator):
                 "mode": "bbox",
                 "data": [-15, 35, 50, 70]
             }
-            config["layers"].insert(0, {
-                "id": "bg",
-                "src": COUNTRIES_FILE,
-                "join": {'export-ids': False},
-                "filter": self.get_filter(continent)
-            })
             config["layers"].append({
                 "id": "island",
                 "src": PHYSICAL_FILE,
@@ -119,7 +150,6 @@ class ContinentsGenerator(MapGenerator):
                     {"featurecla": "Range/mtn"}
                 ]}
             })
-            '''
             config["layers"].append({
                 "id": "river",
                 "src": RIVERS_MEDIUM_FILE,
@@ -129,9 +159,24 @@ class ContinentsGenerator(MapGenerator):
                 },
                 "filter": {"and": [
                     ["name", "not in", ["Dicle", "Al Furat", "Firat", "Tigris"]],
+                    ["name", "not in", [
+                        "Borcea",
+                        "Bratul Chillia",
+                        "Bratul Sfintu Gheorghe",
+                        "Bratul Sulina",
+                        "Ferenc Csatorna",
+                        "Göta älv",
+                        "Kokemäenjoki",
+                        "Soroksari Duna",
+                        "Vuoksi",
+                        "Svir’",
+                        "Neva",
+                        "Kem",
+                    ]],
                     {"featurecla": "River"}
                 ]}
             })
+            '''
             config["layers"].append({
                 "id": "lake",
                 "src": LAKES_MEDIUM_FILE,
@@ -146,28 +191,24 @@ class ContinentsGenerator(MapGenerator):
                 ]}
             })
             '''
-            config["layers"].append({
-                "id": "city",
-                "src": CITIES_FILE,
-                "attributes": {
-                    "code": "NAMEASCII",
-                    "name": "NAME",
-                    "state-code": "ISO_A2",
-                    "population": "POP_MAX"
-                },
-                "filter": {"and": [
-                    ["ISO_A2", "not in",
-                        ["IQ", "CY", "TR", "AM", "GE", "AZ", "TN", "DZ", "MA", "SY", "KW", "LB"]
-                     ],
-                    ["NAME", "not in", ["The Hague", "Vatican City", "Geneva"]]
-                ]}
-            })
         elif continent == "Oceania":
             config["bounds"] = {
                 "mode": "bbox",
                 # [minLon, minLat, maxLon, maxLat].
                 "data": [110, -45, 180, 0]
             }
+
+        config["layers"].append({
+            "id": "city",
+            "src": CITIES_FILE,
+            "attributes": {
+                "code": "NAMEASCII",
+                "name": "NAME",
+                "state-code": "ISO_A2",
+                "population": "POP_MAX"
+            },
+            "filter": self.cities_filter(continent)
+        })
         filename = continent.lower()
         if continent == "North America":
             filename = "namerica"

@@ -13,8 +13,9 @@ PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_pol
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
-CZECH_RIVERS_FILE = "src/CZE_wat/CZE_water_lines_dcw.shp"
 SLOVAK_CITIES_FILE = "src/slovakia-latest.shp/places.shp"
+CZECH_MOUNTAINS = "my_src/CZE_mountains/CZE_mountains.shp"
+CZECH_RIVERS_FILE = "my_src/CZE_rivers//CZE_rivers.shp"
 
 
 def cities_size_filter(record):
@@ -61,7 +62,7 @@ class StateGenerator(SingleMapGenerator):
         return BIG_CITIES_FILE
 
     def get_bg_src(self):
-        if self.code in ["US", "CA"]:
+        if self.code in ["US", "CA", "CZ"]:
             return COUNTRIES_MEDIUM_FILE
         else:
             return COAST_FILE
@@ -298,32 +299,37 @@ class CzechGenerator(CzSkGenerator):
     def get_cities_src(self):
         return CZECH_CITIES_FILE
 
-    """
     def get_config(self):
         config = super(CzSkGenerator, self).get_config()
+        config["layers"][0]["filter"] = ["iso_a2", "is", "CZ"]
+        config["layers"].append({
+            "id": "mountains",
+            "src": CZECH_MOUNTAINS,
+            "attributes": {
+                "code": "name",
+                "name": "name"
+            },
+        })
         config["layers"].append({
             "id": "river",
             "src": CZECH_RIVERS_FILE,
             "attributes": {
-                "code": "NAM",
-                "name": "NAM"
+                "code": "name",
+                "name": "name"
             },
-            "filter": {"and": [
-                ["NAM", "not in", ["UNK"]],
-            ]},
-            "join": {
-                "group-by": "NAM",
-                "export-ids": False
-            }
         })
         return config
-    """
 
     def hacky_fixes(self, map_data):
         map_data = map_data.replace(
-            "M0.000000,0.000000L0.000000,567.267337" +
-            "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
-            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+            "M398.077452,40.651030L",
+            "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z " +
+            "M398.077452,40.651030L")
+        #map_data = map_data.replace(
+        #    "M0.000000,0.000000L0.000000,567.267337" +
+        #    "L1000.000000,567.267337L1000.000000,0.000000L0.000000,0.000000Z",
+        #    "M-5000.0,-5000.0L-5000.0,5000.0L5000.0,5000.0L5000.0,-5000.0L-5000.0,-5000.0Z")
+        # map_data = map_data.decode('cp1252').encode('utf')
         return map_data
 
 

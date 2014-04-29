@@ -53,13 +53,19 @@ class SingleMapGenerator(object):
             # Move Bratislava to the east
             map_data = map_data.replace('cx="495.028537448"', 'cx="500.028537448"')
         elif "world" in file_name:
-            map_data = map_data.replace('r="2"', 'r="4"')
+            map_data = map_data.replace('r="2"', 'r="6"')
             # set missing iso codes of Kosovo and Somaliland to xk and xs
             map_data = map_data.replace('data-code="-99" data-name="Kosovo"',
                                         'data-code="xk" data-name="Kosovo"')
             map_data = map_data.replace('data-code="-99" data-name="Somaliland"',
                                         'data-code="xs" data-name="Somaliland"')
             # TODO: set missing iso code of Northern Cyprus. But what code?
+        elif "asia" in file_name:
+            map_data = map_data.replace('r="2"', 'r="8"')
+        elif "samerica" in file_name:
+            map_data = map_data.replace('r="2"', 'r="24"')
+        elif "namerica" in file_name:
+            map_data = map_data.replace('r="2"', 'r="8"')
         map_data = map_data.replace('r="2"', 'r="16"')
 
         p = Popen(["xmllint", "--format", '-'], stdout=PIPE, stderr=STDOUT, stdin=PIPE)
@@ -77,7 +83,7 @@ class SingleMapGenerator(object):
 
 
 def slugrepl(matchobj):
-    text = matchobj.group(0).replace(" ", "_").decode("utf-8")
+    text = re.sub(r"\s+", '_', matchobj.group(0)).decode("utf-8")
     return unicodedata.normalize('NFD', text).encode('ascii', 'ignore')
 
 

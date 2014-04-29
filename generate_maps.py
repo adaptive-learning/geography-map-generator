@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import optparse
 from continents import ContinentsGenerator
@@ -7,9 +8,12 @@ from generator import MapGenerator
 
 COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
 COUNTRIES_FILE = "src/ne_110m_admin_0_countries_lakes/ne_110m_admin_0_countries_lakes.shp"
-CITIES_BIG_FILE = "src/ne_10m_populated_places/ne_10m_populated_places.shp"
+CITIES_FILE = "src/ne_110m_populated_places/ne_110m_populated_places.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
+RIVERS_FILE = "src/ne_10m_rivers_lake_centerlines/ne_10m_rivers_lake_centerlines.shp"
+RIVERS_FILE = "src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
+LAKES_FILE = "src/ne_110m_lakes/ne_110m_lakes.shp"
 
 
 def main():
@@ -58,6 +62,20 @@ class WorldGenerator(MapGenerator):
                 },
                 "filter": ["iso_a2", "is not", "AQ"]
             }, {
+                "id": "island",
+                "src": PHYSICAL_FILE,
+                "simplify": 1,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    {"featurecla": "Island"},
+                    lambda r: r["scalerank"] < 4,
+                    ["name", "not in", ["Great Nicobar", "N. Andaman", "Middle Andaman", "S. Andaman"]],
+                    lambda r: r["name"].decode('cp1252').encode('utf') != "Bol’shoy Begichev I.",
+                ]}
+            }, {
                 "id": "mountains",
                 "src": PHYSICAL_FILE,
                 "attributes": {
@@ -67,6 +85,43 @@ class WorldGenerator(MapGenerator):
                 "filter": {"and": [
                     {"featurecla": "Range/mtn"},
                     lambda r: r["scalerank"] < 3,
+                ]}
+            }, {
+                "id": "river",
+                "src": RIVERS_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    ["name", "not in", ["Peace", "Yangtze"]],
+                ]}
+            }, {
+                "id": "lake",
+                "src": LAKES_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    ["name", "not in", [
+                        "Lake Athabasca",
+                        "Great Salt Lake",
+                        "Lake Tana",
+                        "Lake Okeechobee",
+                    ]],
+                ]}
+            }, {
+                "id": "city",
+                "src": CITIES_FILE,
+                "attributes": {
+                    "code": "NAMEASCII",
+                    "name": "NAME",
+                    "state-code": "ISO_A2",
+                    "population": "POP_MAX"
+                },
+                "filter": {"and": [
+                    lambda r: r["POP_MAX"] > 2 * 10 ** 6,
                 ]}
             }]
         }
