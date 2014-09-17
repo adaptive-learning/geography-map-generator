@@ -60,7 +60,10 @@ class WorldGenerator(MapGenerator):
                     "name": "name",
                     "population": "pop_est",
                 },
-                "filter": ["iso_a2", "is not", "AQ"]
+                "filter": {"and": [
+                    ["iso_a2", "is not", "AQ"],
+                    ["name", "is not", "N. Cyprus"]
+                ]}
             }, {
                 "id": "island",
                 "src": PHYSICAL_FILE,
