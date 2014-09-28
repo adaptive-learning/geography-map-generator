@@ -11,8 +11,7 @@ COUNTRIES_FILE = "src/ne_110m_admin_0_countries_lakes/ne_110m_admin_0_countries_
 CITIES_FILE = "src/ne_110m_populated_places/ne_110m_populated_places.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
-RIVERS_FILE = "src/ne_10m_rivers_lake_centerlines/ne_10m_rivers_lake_centerlines.shp"
-RIVERS_FILE = "src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
+RIVERS_FILE = "my_src/ne_110m_rivers_lake_centerlines/ne_10m_rivers_lake_centerlines.shp"
 LAKES_FILE = "src/ne_110m_lakes/ne_110m_lakes.shp"
 
 
