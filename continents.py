@@ -6,6 +6,7 @@ CITIES_FILE = "src/ne_110m_populated_places/ne_110m_populated_places.shp"
 MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
 RIVERS_MEDIUM_FILE = "my_src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
+RIVERS_FILE = "src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 
@@ -116,6 +117,21 @@ class ContinentsGenerator(MapGenerator):
                     {"region": continent},
                     {"featurecla": "Range/mtn"},
                     lambda r: r["scalerank"] < 3,
+                ]}
+            })
+            config["layers"].append({
+                "id": "river",
+                "src": RIVERS_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    ["name", "not in", [
+                        "Volga",
+                        "Yangtze",
+                    ]],
+                    {"featurecla": "River"}
                 ]}
             })
         elif continent == "Europe":
