@@ -18,6 +18,7 @@ class MapGenerator():
         K.generate(config, outfile=file_name)
         SingleMapGenerator().codes_hacks(file_name)
         print "generated map:", file_name
+        print " to view it in google-chrome run: ' google-chrome", file_name, "'"
 
 
 class SingleMapGenerator(object):
