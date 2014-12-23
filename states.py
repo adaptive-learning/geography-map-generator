@@ -374,8 +374,18 @@ class AustriaGenerator(StateGenerator):
     state_id = "bundesland"
 
 
+class MexicoGenerator(StateGenerator):
+    state_id = "state"
+
+    def hacky_fixes(self, map_data):
+        map_data = re.sub(r'cy="(\d*\.\d*)" data-code="',
+                          'cy="\\1" data-code="city-', map_data)
+        return map_data
+
+
 class StatesGenerator(MapGenerator):
-    default_codes = ["CZ", "SK", "DE", "AT", "CN", "IN", "US", "CA", "AU", "GB", "ES", "IT", "FR"]
+    default_codes = ["CZ", "SK", "DE", "AT", "CN", "IN", "US", "CA",
+                     "AU", "GB", "ES", "IT", "FR", "MX"]
     generators = {
         "CZ": CzechGenerator,
         "DE": GermanyGenerator,
@@ -390,6 +400,7 @@ class StatesGenerator(MapGenerator):
         "AU": StateGenerator,
         "SK": SlovakiaGenerator,
         "GB": GBGenerator,
+        "MX": MexicoGenerator,
     }
 
     def generate_one(self, state):
