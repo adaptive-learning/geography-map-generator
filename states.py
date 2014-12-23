@@ -19,7 +19,7 @@ CZECH_RIVERS_FILE = "my_src/CZE_rivers//CZE_rivers.shp"
 
 
 def cities_size_filter(record):
-    if record['ISO_A2'] == 'US':
+    if record['ISO_A2'] in ['US', 'BR']:
         min_pop = 10 ** 6
     elif record['ISO_A2'] in ['AT', 'CZ']:
         min_pop = 10 ** 4
@@ -374,18 +374,34 @@ class AustriaGenerator(StateGenerator):
     state_id = "bundesland"
 
 
-class MexicoGenerator(StateGenerator):
-    state_id = "state"
-
+class MexicoArgentinaGenerator(StateGenerator):
     def hacky_fixes(self, map_data):
         map_data = re.sub(r'cy="(\d*\.\d*)" data-code="',
                           'cy="\\1" data-code="city-', map_data)
+        map_data = map_data.replace('Z " data-code="Tierra_del_Fuego"',
+                                    'Z " data-code="Tierra_del_Fuego-state"')
+        map_data = map_data.replace('data-name="Cdrdoba"',
+                                    'data-name="Cordoba"')
+        return map_data
+
+
+class BrazilGenerator(StateGenerator):
+
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace('data-name="Vitiria"',
+                                    'data-name="Vitoria"')
+        map_data = map_data.replace('data-code="Vitoria"',
+                                    'data-code="Vitoria-Brazil"')
+        map_data = map_data.replace('data-code="Parana"',
+                                    'data-code="Parana-state"')
+        map_data = map_data.replace('Z " data-code="Rio_de_Janeiro"',
+                                    'Z " data-code="Rio_de_Janeiro-state"')
         return map_data
 
 
 class StatesGenerator(MapGenerator):
     default_codes = ["CZ", "SK", "DE", "AT", "CN", "IN", "US", "CA",
-                     "AU", "GB", "ES", "IT", "FR", "MX"]
+                     "AU", "GB", "ES", "IT", "FR", "MX", "AR", "BR"]
     generators = {
         "CZ": CzechGenerator,
         "DE": GermanyGenerator,
@@ -400,7 +416,9 @@ class StatesGenerator(MapGenerator):
         "AU": StateGenerator,
         "SK": SlovakiaGenerator,
         "GB": GBGenerator,
-        "MX": MexicoGenerator,
+        "MX": MexicoArgentinaGenerator,
+        "AR": MexicoArgentinaGenerator,
+        "BR": BrazilGenerator,
     }
 
     def generate_one(self, state):
