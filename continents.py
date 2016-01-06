@@ -148,7 +148,7 @@ class ContinentsGenerator(MapGenerator):
                     "code": "nazev",
                     "name": "nazev"
                 },
-                "charset": "cp1252",
+                "charset": "cp1250",
                 "filter": {"and": [
                     {"svetadil": "Evropa"},
                 ]}
