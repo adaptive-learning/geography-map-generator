@@ -23,3 +23,14 @@ To get more info on how to generate maps run:
 cd <path_to_your_local_git_repo>
 ./generate_maps.py
 ```
+
+Some example usages:
+```
+./generate_maps.py all
+./generate_maps.py world
+./generate_maps.py continents Europe
+./generate_maps.py continents Europe
+./generate_maps.py states cz
+./generate_maps.py states sk
+./generate_maps.py states us
+```
