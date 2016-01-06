@@ -3,6 +3,7 @@ from kartograph import Kartograph
 import re
 import unicodedata
 from subprocess import Popen, PIPE, STDOUT
+import os
 
 
 class MapGenerator():
@@ -14,7 +15,10 @@ class MapGenerator():
 
     def generate_map(self, config, name):
         K = Kartograph()
-        file_name = 'map/' + name + '.svg'
+        directory = 'map'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file_name = os.path.join(directory, name + '.svg')
         K.generate(config, outfile=file_name)
         SingleMapGenerator().codes_hacks(file_name)
         print "generated map:", file_name
@@ -79,7 +83,10 @@ class SingleMapGenerator(object):
 
     def generate_map(self):
         K = Kartograph()
-        file_name = 'map/' + self.map_name + '.svg'
+        directory = 'map'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file_name = os.path.join(directory, self.map_name + '.svg')
         K.generate(self.config, outfile=file_name)
         self.codes_hacks(file_name)
         print "generated map:", file_name
