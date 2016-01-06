@@ -19,14 +19,16 @@ def main():
     p = optparse.OptionParser()
     options, arguments = p.parse_args()
     if len(arguments) < 1:
-        StatesGenerator().generate([])
-        WorldGenerator().generate([])
-        ContinentsGenerator().generate([])
+        print "USAGE: \n./generate_maps.py [all|states|continents|world] [<map_codes> ...]"
     else:
         maps = arguments.pop(0)
         codes = arguments
         generator = None
-        if maps == 'states':
+        if maps == 'all':
+            StatesGenerator().generate([])
+            WorldGenerator().generate([])
+            ContinentsGenerator().generate([])
+        elif maps == 'states':
             codes = [c.upper() for c in codes]
             generator = StatesGenerator()
         elif maps == 'continents':
