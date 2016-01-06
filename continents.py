@@ -9,6 +9,7 @@ RIVERS_MEDIUM_FILE = "my_src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_c
 RIVERS_FILE = "my_src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
+SEAS_FILE = "my_src/more/more.shp"
 
 
 def cities_size_filter(record):
@@ -139,6 +140,19 @@ class ContinentsGenerator(MapGenerator):
                 "mode": "bbox",
                 "data": [-15, 35, 50, 70]
             }
+            config["layers"].append({
+                "id": "sea",
+                "src": SEAS_FILE,
+                "simplify": 1,
+                "attributes": {
+                    "code": "nazev",
+                    "name": "nazev"
+                },
+                "charset": "cp1252",
+                "filter": {"and": [
+                    {"svetadil": "Evropa"},
+                ]}
+            })
             config["layers"].append({
                 "id": "island",
                 "src": PHYSICAL_FILE,
