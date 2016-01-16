@@ -90,6 +90,7 @@ class SingleMapGenerator(object):
         K.generate(self.config, outfile=file_name)
         self.codes_hacks(file_name)
         print "generated map:", file_name
+        print " to view it in google-chrome run: ' google-chrome", file_name, "'"
 
 
 def slugrepl(matchobj):
