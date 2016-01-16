@@ -19,7 +19,7 @@ def main():
     p = optparse.OptionParser()
     options, arguments = p.parse_args()
     if len(arguments) < 1:
-        print "USAGE: \n./generate_maps.py [all|states|continents|world] [<map_codes> ...]"
+        print_usage()
     else:
         maps = arguments.pop(0)
         codes = arguments
@@ -35,8 +35,14 @@ def main():
             generator = ContinentsGenerator()
         elif maps == 'world':
             generator = WorldGenerator()
+        else:
+            print_usage()
         if generator is not None:
             generator.generate(codes)
+
+
+def print_usage():
+    print "USAGE: \n./generate_maps.py [all|states|continents|world] [<map_codes> ...]"
 
 
 def cities_size_filter(record):
