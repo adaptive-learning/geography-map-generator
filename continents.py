@@ -135,6 +135,22 @@ class ContinentsGenerator(MapGenerator):
                     {"featurecla": "River"}
                 ]}
             })
+        elif continent == "Africa":
+            config["layers"].append({
+                "id": "river",
+                "src": RIVERS_FILE,
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    ["name", "not in", [
+                        "Euphrates",
+                        "Tigris",
+                    ]],
+                    {"featurecla": "River"}
+                ]}
+            })
         elif continent == "Europe":
             config["bounds"] = {
                 "mode": "bbox",
