@@ -15,9 +15,12 @@ LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
 SLOVAK_CITIES_FILE = "src/slovakia-latest.shp/places.shp"
 CZECH_MOUNTAINS = "my_src/CZE_mountains/CZE_mountains.shp"
-CZECH_RIVERS_FILE = "my_src/CZE_rivers//CZE_rivers.shp"
-CZECH_RIVERS_FILE = "my_src/reky_cr/reky_cr.shp"
-SLOVAK_RIVERS_FILE = "my_src/reky_sr/reky_sr.shp"
+RIVER_FILES = {
+    "CZ": "my_src/reky_cr/reky_cr.shp",
+    "SK": "my_src/reky_sr/reky_sr.shp",
+    "AT": "my_src/shp_riversAU/reky.shp",
+}
+SLOVAKIA_BORDER = "my_src/reky_sr/hranice_slovensko.shp"
 
 
 def cities_size_filter(record):
@@ -64,7 +67,7 @@ class StateGenerator(SingleMapGenerator):
         return BIG_CITIES_FILE
 
     def get_bg_src(self):
-        if self.code in ["US", "CA", "CZ", "SK"]:
+        if self.code in ["US", "CA", "CZ", "SK", "AT"]:
             return COUNTRIES_MEDIUM_FILE
         else:
             return COAST_FILE
@@ -321,7 +324,7 @@ class CzechGenerator(CzSkGenerator):
         })
         config["layers"].append({
             "id": "river",
-            "src": CZECH_RIVERS_FILE,
+            "src": RIVER_FILES["CZ"],
             "attributes": {
                 "code": "NAZ_TOK",
                 "name": "NAZ_TOK"
@@ -336,12 +339,14 @@ class SlovakiaGenerator(CzSkGenerator):
 
     def get_config(self):
         config = super(CzSkGenerator, self).get_config()
-        config["layers"][0]["filter"] = ["iso_a2", "in", ["SK"]]
-        config["layers"][0]["simplify"] = 0
+        config["layers"][0] = {
+            "id": "bg",
+            "src": SLOVAKIA_BORDER,
+        }
         config["bounds"]["padding"] = 0.01
         config["layers"].append({
             "id": "river",
-            "src": SLOVAK_RIVERS_FILE,
+            "src": RIVER_FILES["SK"],
             "attributes": {
                 "code": "name",
                 "name": "name"
@@ -372,6 +377,29 @@ class GBGenerator(StateGenerator):
 
 class AustriaGenerator(StateGenerator):
     state_id = "bundesland"
+
+    def get_config(self):
+        config = StateGenerator.get_config(self)
+        config["layers"][0]["filter"] = ["iso_a2", "in", ["AT"]]
+        config["layers"][0]["simplify"] = 0
+        config["layers"].append({
+            "id": "river",
+            "src": RIVER_FILES["AT"],
+            "simplify": 1,
+            "charset": "cp1250",
+            "attributes": {
+                "code": "name",
+                "name": "name"
+            },
+        })
+        return config
+
+    def hacky_fixes(self, map_data):
+        map_data = map_data.replace(
+            '<g class="" id="bg">',
+            '<g class="" id="bg">' +
+            '<path d="M-10000.0,-10000.0L-10000.0,10000.0L10000.0,10000.0L10000.0,-10000.0Z "/>')
+        return map_data
 
 
 class MexicoArgentinaGenerator(StateGenerator):
