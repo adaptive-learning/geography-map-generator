@@ -20,7 +20,10 @@ RIVER_FILES = {
     "SK": "my_src/reky_sr/reky_sr.shp",
     "AT": "my_src/shp_riversAU/reky.shp",
 }
-SLOVAKIA_BORDER = "my_src/reky_sr/hranice_slovensko.shp"
+STATE_BORDERS = {
+    "SK": "my_src/reky_sr/hranice_slovensko.shp",
+    "AT": "my_src/border_AU/AUT_adm0.shp",
+}
 
 
 def cities_size_filter(record):
@@ -341,12 +344,12 @@ class SlovakiaGenerator(CzSkGenerator):
         config = super(CzSkGenerator, self).get_config()
         config["layers"][0] = {
             "id": "bg",
-            "src": SLOVAKIA_BORDER,
+            "src": STATE_BORDERS[self.code],
         }
         config["bounds"]["padding"] = 0.01
         config["layers"].append({
             "id": "river",
-            "src": RIVER_FILES["SK"],
+            "src": RIVER_FILES[self.code],
             "attributes": {
                 "code": "name",
                 "name": "name"
@@ -380,11 +383,14 @@ class AustriaGenerator(StateGenerator):
 
     def get_config(self):
         config = StateGenerator.get_config(self)
-        config["layers"][0]["filter"] = ["iso_a2", "in", ["AT"]]
-        config["layers"][0]["simplify"] = 0
+        config["layers"][0] = {
+            "id": "bg",
+            "src": STATE_BORDERS[self.code],
+        }
+        config["bounds"]["padding"] = 0.01
         config["layers"].append({
             "id": "river",
-            "src": RIVER_FILES["AT"],
+            "src": RIVER_FILES[self.code],
             "simplify": 1,
             "charset": "cp1250",
             "attributes": {
