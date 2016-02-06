@@ -123,6 +123,8 @@ class StateGenerator(SingleMapGenerator):
             filter['and'].append(["NAME", "not in", ["St. Paul", "Vancouver"]])
         elif self.code == "CA":
             filter['and'].append(["NAME", "not in", ["Hamilton", "Kitchener", "Oshawa"]])
+        elif self.code == "AT":
+            filter['and'].append(["NAME", "not in", ["Passau"]])
         return filter
 
     def get_config(self):
