@@ -21,6 +21,7 @@ RIVER_FILES = {
     "AT": "my_src/shp_riversAU/reky.shp",
 }
 STATE_BORDERS = {
+    "CZ": "my_src/hranice_cr/hranice_cr.shp",
     "SK": "my_src/reky_sr/hranice_slovensko.shp",
     "AT": "my_src/border_AU/AUT_adm0.shp",
 }
@@ -316,7 +317,10 @@ class CzechGenerator(CzSkGenerator):
 
     def get_config(self):
         config = super(CzSkGenerator, self).get_config()
-        config["layers"][0]["filter"] = ["iso_a2", "in", ["CZ"]]
+        config["layers"][0] = {
+            "id": "bg",
+            "src": STATE_BORDERS[self.code],
+        }
         config["layers"].append({
             "id": "mountains",
             "src": CZECH_MOUNTAINS,
