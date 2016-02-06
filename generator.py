@@ -71,8 +71,13 @@ class SingleMapGenerator(object):
             map_data = map_data.replace('r="2"', 'r="24"')
         elif "namerica" in file_name:
             map_data = map_data.replace('r="2"', 'r="8"')
-        elif "ar." in file_name:
+        elif ("ar." in file_name or
+              "no." in file_name):
             map_data = map_data.replace('r="2"', 'r="24"')
+        elif ("ar." in file_name or
+              "se." in file_name or
+              "fi." in file_name):
+            map_data = map_data.replace('r="2"', 'r="36"')
         map_data = map_data.replace('r="2"', 'r="16"')
 
         p = Popen(["xmllint", "--format", '-'], stdout=PIPE, stderr=STDOUT, stdin=PIPE)

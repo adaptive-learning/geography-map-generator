@@ -12,8 +12,6 @@ BIG_CITIES_FILE = "src/ne_10m_populated_places/ne_10m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
-CZECH_CITIES_FILE = "src/czech-republic-latest.shp/places.shp"
-SLOVAK_CITIES_FILE = "src/slovakia-latest.shp/places.shp"
 CZECH_MOUNTAINS = "my_src/CZE_mountains/CZE_mountains.shp"
 RIVER_FILES = {
     "CZ": "my_src/reky_cr/reky_cr.shp",
@@ -24,6 +22,16 @@ STATE_BORDERS = {
     "CZ": "my_src/hranice_cr/hranice_cr.shp",
     "SK": "my_src/reky_sr/hranice_slovensko.shp",
     "AT": "my_src/border_AU/AUT_adm0.shp",
+    "FI": "my_src/fin-border/fin_border.shp",
+    "NO": "my_src/nor-border/nor_border.shp",
+    "SE": "my_src/swe-border/swe_border.shp",
+}
+CITY_FILES = {
+    'CZ': "src/czech-republic-latest.shp/places.shp",
+    'SK': "src/slovakia-latest.shp/places.shp",
+    "FI": "my_src/fin-city/fin_city.shp",
+    "NO": "my_src/nor-city/nor_city.shp",
+    "SE": "my_src/swe-city/swe_city.shp",
 }
 
 
@@ -68,6 +76,8 @@ class StateGenerator(SingleMapGenerator):
         return "name"
 
     def get_cities_src(self):
+        if self.code in CITY_FILES:
+            return CITY_FILES[self.code]
         return BIG_CITIES_FILE
 
     def get_bg_src(self):
@@ -312,8 +322,6 @@ class CzSkGenerator(StateGenerator):
 
 
 class CzechGenerator(CzSkGenerator):
-    def get_cities_src(self):
-        return CZECH_CITIES_FILE
 
     def get_config(self):
         config = super(CzSkGenerator, self).get_config()
@@ -341,8 +349,6 @@ class CzechGenerator(CzSkGenerator):
 
 
 class SlovakiaGenerator(CzSkGenerator):
-    def get_cities_src(self):
-        return SLOVAK_CITIES_FILE
 
     def get_config(self):
         config = super(CzSkGenerator, self).get_config()
@@ -378,6 +384,45 @@ class GBGenerator(StateGenerator):
         config["bounds"] = {
             "mode": "bbox",
             "data": [-10, 50, 2, 59]
+        }
+        return config
+
+
+class ScandinaviaGenerator(StateGenerator):
+
+    def get_cities_filter(self):
+        return {}
+
+    def get_config(self):
+        config = StateGenerator.get_config(self)
+        config["layers"][1] = {
+            "id": "border",
+            "src": COUNTRIES_MEDIUM_FILE,
+            "filter": {
+                "iso_a2": self.code,
+            },
+            "simplify": 5,
+        }
+        config["layers"][2]['attributes'] = {
+            "code": "name",
+            "name": "name",
+            "population": "population",
+        }
+        config["bounds"] = {
+            "mode": "polygons",
+            "data": {
+                "layer": "border",
+            },
+        }
+        return config
+
+
+class NorwayGenerator(ScandinaviaGenerator):
+    def get_config(self):
+        config = ScandinaviaGenerator.get_config(self)
+        config["bounds"] = {
+            "mode": "bbox",
+            "data": [3, 58, 25, 71]
         }
         return config
 
@@ -454,6 +499,9 @@ class StatesGenerator(MapGenerator):
         "AU": StateGenerator,
         "SK": SlovakiaGenerator,
         "GB": GBGenerator,
+        "FI": ScandinaviaGenerator,
+        "NO": NorwayGenerator,
+        "SE": ScandinaviaGenerator,
         "MX": MexicoArgentinaGenerator,
         "AR": MexicoArgentinaGenerator,
         "BR": BrazilGenerator,
