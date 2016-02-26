@@ -7,6 +7,9 @@ MEDIUM_CITIES_FILE = "src/ne_50m_populated_places/ne_50m_populated_places.shp"
 PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_polys.shp"
 RIVERS_MEDIUM_FILE = "my_src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 RIVERS_FILE = "my_src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
+RIVERS_FILES = {
+    "North America": "my_src/us-river/us-river.shp",
+}
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
 SEAS_FILE = "my_src/more/more.shp"
@@ -133,6 +136,19 @@ class ContinentsGenerator(MapGenerator):
                         "Yangtze",
                     ]],
                     {"featurecla": "River"}
+                ]}
+            })
+        elif continent == "North America":
+            config["layers"].append({
+                "id": "river",
+                "src": RIVERS_FILES[continent],
+                "charset": "cp1250",
+                "attributes": {
+                    "code": "name",
+                    "name": "name"
+                },
+                "filter": {"and": [
+                    {"size": 1},
                 ]}
             })
         elif continent == "Africa":
