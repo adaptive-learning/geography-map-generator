@@ -18,6 +18,9 @@ RIVER_FILES = {
     "SK": "my_src/reky_sr/reky_sr.shp",
     "AT": "my_src/shp_riversAU/reky.shp",
 }
+RESERVOIR_FILES = {
+    "CZ": "my_src/vodni_nadrze_cr/vodni_nadrze_cr.shp",
+}
 STATE_BORDERS = {
     "CZ": "my_src/hranice_cr/hranice_cr.shp",
     "SK": "my_src/reky_sr/hranice_slovensko.shp",
@@ -345,6 +348,14 @@ class CzechGenerator(CzSkGenerator):
             "attributes": {
                 "code": "NAZ_TOK",
                 "name": "NAZ_TOK"
+            },
+        })
+        config["layers"].append({
+            "id": "reservoir",
+            "src": RESERVOIR_FILES["CZ"],
+            "attributes": {
+                "code": "NAZ_NA",
+                "name": "NAZ_NA"
             },
         })
         return config
