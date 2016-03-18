@@ -13,6 +13,7 @@ PHYSICAL_FILE = "src/ne_10m_geography_regions_polys/ne_10m_geography_regions_pol
 RIVERS_MEDIUM_FILE = "src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp"
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 CZECH_MOUNTAINS = "my_src/CZE_mountains/CZE_mountains.shp"
+CZECH_SURFACE = "my_src/CZE_surface/CZE_mountains.shp"
 RIVER_FILES = {
     "CZ": "my_src/reky_cr/reky_cr.shp",
     "SK": "my_src/reky_sr/reky_sr.shp",
@@ -337,6 +338,16 @@ class CzechGenerator(CzSkGenerator):
         config["layers"].append({
             "id": "mountains",
             "src": CZECH_MOUNTAINS,
+            "charset": "cp1250",
+            "attributes": {
+                "code": "name",
+                "name": "name"
+            },
+        })
+        config["layers"].append({
+            "id": "surface",
+            "src": CZECH_SURFACE,
+            "charset": "cp1250",
             "attributes": {
                 "code": "name",
                 "name": "name"
