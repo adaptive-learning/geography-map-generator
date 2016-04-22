@@ -9,6 +9,7 @@ RIVERS_MEDIUM_FILE = "my_src/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_c
 RIVERS_FILE = "my_src/ne_110m_rivers_lake_centerlines/ne_110m_rivers_lake_centerlines.shp"
 RIVERS_FILES = {
     "North America": "my_src/us-river/us-river.shp",
+    "South America": "my_src/south_am_river/south_am_rivers.shp",
 }
 LAKES_MEDIUM_FILE = "src/ne_50m_lakes/ne_50m_lakes.shp"
 COAST_FILE = "src/ne_50m_land/ne_50m_land.shp"
@@ -138,7 +139,7 @@ class ContinentsGenerator(MapGenerator):
                     {"featurecla": "River"}
                 ]}
             })
-        elif continent == "North America":
+        elif continent in ["North America", "South America"]:
             config["layers"].append({
                 "id": "river",
                 "src": RIVERS_FILES[continent],
