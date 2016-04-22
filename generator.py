@@ -80,11 +80,27 @@ class SingleMapGenerator(object):
             map_data = map_data.replace('r="2"', 'r="36"')
         map_data = map_data.replace('r="2"', 'r="16"')
 
+        map_data = self.fix_code_conflicts(map_data)
+
         p = Popen(["xmllint", "--format", '-'], stdout=PIPE, stderr=STDOUT, stdin=PIPE)
         out, err = p.communicate(input=map_data)
 
         mapFile.write(out)
         mapFile.close()
+
+    def fix_code_conflicts(self, map_data):
+        codes = ['district', 'chko', 'surface']
+        for code in codes:
+            code_id = 'id="' + code + '"'
+            try:
+                start_position = map_data.index(code_id)
+                end_position = map_data.index('</g>', start_position)
+                layer = map_data[start_position:end_position]
+                layer = layer.replace('code="', 'code="' + code + '-')
+                map_data = map_data[:start_position] + layer + map_data[end_position:]
+            except ValueError:
+                pass
+        return map_data
 
     def generate_map(self):
         K = Kartograph()
