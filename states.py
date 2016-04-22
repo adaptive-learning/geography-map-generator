@@ -367,6 +367,20 @@ class CzechGenerator(CzSkGenerator):
                 "name": "name"
             },
         })
+        other_layers = {
+            'chko': 'my_src/zchu_cz/np_chko.shp',
+        }
+        for i in other_layers:
+            config["layers"].append({
+                "id": i,
+                "src": other_layers[i],
+                "simplify": 1,
+                "attributes": {
+                    "code": "nazev",
+                    "name": "nazev"
+                },
+            })
+
         config["layers"].append({
             "id": "river",
             "src": RIVER_FILES["CZ"],
