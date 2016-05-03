@@ -344,11 +344,20 @@ class CzechGenerator(CzSkGenerator):
             "id": "district",
             "src": SHP_FILES[self.code + '-' + 'district'],
             "charset": "cp1250",
+            "simplify": 2,
             "attributes": {
                 "code": "nazev_bez",
                 "name": "nazev"
             },
         }
+        config["layers"].append({
+            "id": "surface",
+            "src": CZECH_SURFACE,
+            "attributes": {
+                "code": "name",
+                "name": "name"
+            },
+        })
         config["layers"].append({
             "id": "mountains",
             "src": CZECH_MOUNTAINS,
@@ -358,15 +367,7 @@ class CzechGenerator(CzSkGenerator):
                 "name": "name"
             },
         })
-        config["layers"].append({
-            "id": "surface",
-            "src": CZECH_SURFACE,
-            "charset": "cp1250",
-            "attributes": {
-                "code": "name",
-                "name": "name"
-            },
-        })
+
         other_layers = {
             'chko': 'my_src/zchu_cz/np_chko.shp',
         }
