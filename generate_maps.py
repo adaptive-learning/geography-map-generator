@@ -5,6 +5,7 @@ import optparse
 from continents import ContinentsGenerator
 from states import StatesGenerator
 from generator import MapGenerator
+from regions import RegionsGenerator
 
 COUNTRIES_MEDIUM_FILE = "src/ne_50m_admin_0_countries_lakes/ne_50m_admin_0_countries_lakes.shp"
 COUNTRIES_FILE = "src/ne_110m_admin_0_countries_lakes/ne_110m_admin_0_countries_lakes.shp"
@@ -35,6 +36,8 @@ def main():
             generator = ContinentsGenerator()
         elif maps == 'world':
             generator = WorldGenerator()
+        elif maps == 'regions':
+            generator = RegionsGenerator()
         else:
             print_usage()
         if generator is not None:

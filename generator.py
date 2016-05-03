@@ -89,7 +89,7 @@ class SingleMapGenerator(object):
         mapFile.close()
 
     def fix_code_conflicts(self, map_data):
-        codes = ['district', 'chko', 'surface']
+        codes = ['district', 'chko', 'surface', 'soorp', 'soopu']
         for code in codes:
             code_id = 'id="' + code + '"'
             try:
