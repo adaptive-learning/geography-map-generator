@@ -12,3 +12,4 @@ sqlite3.db
 flags
 map
 src
+.cache
