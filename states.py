@@ -389,6 +389,13 @@ class CzechGenerator(CzSkGenerator):
                 "code": "NAZ_TOK",
                 "name": "NAZ_TOK"
             },
+            "filter": {
+                "and": [lambda x: (
+                    float(x["Shape_Leng"]) > 0.5 or
+                    x["NAZ_TOK"].decode('utf-8') in [
+                        "Rožnovská Bečva", "Punkva", "Orlice"]
+                )]
+            },
         })
         config["layers"].append({
             "id": "reservoir",
