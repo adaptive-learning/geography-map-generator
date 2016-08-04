@@ -317,7 +317,7 @@ class CzSkGenerator(StateGenerator):
             ["type", "in", ["city", "town"]],
             ["name", "not in", ["Kudowa-Zdrój", "Klingenthal", "Hejnice", "Rejdice",
                                 "Nyergesújfalu", "Lábatlan", "Petržalka", "Nové Mesto",
-                                "Ružinov"]],
+                                "Ružinov", "Zawidów"]],
             cz_cities_size_filter
         ]}
         return filter
@@ -393,7 +393,7 @@ class CzechGenerator(CzSkGenerator):
                 "and": [lambda x: (
                     float(x["Shape_Leng"]) > 0.5 or
                     x["NAZ_TOK"].decode('utf-8') in [
-                        "Rožnovská Bečva", "Punkva", "Orlice"]
+                        "Rožnovská Bečva".decode('utf-8'), "Orlice"]
                 )]
             },
         })
